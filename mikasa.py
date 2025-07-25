@@ -32,23 +32,47 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = os.getenv("BOT_TOKEN") or "YOUR_TELEGRAM_BOT_TOKEN_HERE"
 
 # HTTP Server for uptime monitoring
-class UptimeHandler(BaseHTTPRequestHandler):
+class DummyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
-        self.send_header('Content-type', 'text/html')
         self.end_headers()
-        self.wfile.write(b"Bot is running!")
-    
+        self.wfile.write(b"Sakura bot is alive!")
+
+    def do_HEAD(self):
+        self.send_response(200)
+        self.end_headers()
+
     def log_message(self, format, *args):
-        # Suppress HTTP server logs
         pass
+
+def start_dummy_server():
+    logger.info("🌐 Starting HTTP health check server")
+    port = int(os.environ.get("PORT", 5000))
+    try:
+        server = HTTPServer(("0.0.0.0", port), DummyHandler)
+        logger.info(f"✅ HTTP server listening on 0.0.0.0:{port}")
+        server.serve_forever()
+    except Exception as e:
+        logger.error(f"❌ Failed to start HTTP server: {e}")
+        raise
 
 def start_uptime_server():
     """Start HTTP server for uptime monitoring"""
     port = int(os.environ.get('PORT', 8080))
-    server = HTTPServer(('0.0.0.0', port), UptimeHandler)
-    logger.info(f"Starting uptime server on port {port}")
-    server.serve_forever()
+    try:
+        server = HTTPServer(('0.0.0.0', port), UptimeHandler)
+        logger.info(f"Starting uptime server on port {port}")
+        server.serve_forever()
+    except Exception as e:
+        logger.error(f"Failed to start uptime server: {e}")
+        # Try alternative port
+        try:
+            port = 3000
+            server = HTTPServer(('0.0.0.0', port), UptimeHandler)
+            logger.info(f"Starting uptime server on alternative port {port}")
+            server.serve_forever()
+        except Exception as e2:
+            logger.error(f"Failed to start uptime server on alternative port: {e2}")
 
 # Pollinations AI configuration
 API_SERVICE = {
@@ -882,9 +906,8 @@ def main():
     """Main function to run the bot."""
     logger.info(f"Starting bot with token: {BOT_TOKEN[:10]}...")
     
-    # Start uptime server in a separate thread
-    uptime_thread = threading.Thread(target=start_uptime_server, daemon=True)
-    uptime_thread.start()
+    # Start dummy server in a separate thread
+    threading.Thread(target=start_dummy_server, daemon=True).start()
     
     # Create application
     application = Application.builder().token(BOT_TOKEN).build()
