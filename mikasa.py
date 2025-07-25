@@ -27,7 +27,12 @@ logger = logging.getLogger(__name__)
 # Bot configuration
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or "YOUR_TELEGRAM_BOT_TOKEN_HERE"
 HUGGING_FACE = os.getenv("HUGGING_FACE_TOKEN") or "YOUR_HUGGING_FACE_TOKEN_HERE"
-MODEL_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+
+# Use the new Inference Providers API with a reliable model
+MODEL_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev"
+# Alternative models to try:
+# MODEL_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
+# MODEL_URL = "https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4"
 
 # Default generation parameters
 DEFAULT_PARAMS = {
@@ -194,10 +199,19 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
         )
     
     try:
-        # Prepare request payload
+        # Prepare request payload - simplified format
         payload = {
             "inputs": prompt,
-            "parameters": user_settings
+            "parameters": {
+                "guidance_scale": user_settings.get('guidance_scale', 7.5),
+                "num_inference_steps": user_settings.get('num_inference_steps', 50),
+                "width": user_settings.get('width', 512),
+                "height": user_settings.get('height', 512)
+            },
+            "options": {
+                "wait_for_model": True,
+                "use_cache": False
+            }
         }
         
         # Make request to Hugging Face API
@@ -278,12 +292,44 @@ async def make_api_request(payload: dict) -> requests.Response:
     loop = asyncio.get_event_loop()
     
     def sync_request():
-        return requests.post(
-            MODEL_URL,
-            headers=get_headers(),
-            json=payload,
-            timeout=60
-        )
+        try:
+            # Try the main model first
+            response = requests.post(
+                MODEL_URL,
+                headers=get_headers(),
+                json=payload,
+                timeout=120  # Increased timeout for image generation
+            )
+            
+            # If main model fails, try backup models
+            if response.status_code == 404:
+                backup_models = [
+                    "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+                    "https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4",
+                    "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+                ]
+                
+                for backup_url in backup_models:
+                    try:
+                        response = requests.post(
+                            backup_url,
+                            headers=get_headers(),
+                            json=payload,
+                            timeout=120
+                        )
+                        if response.status_code != 404:
+                            break
+                    except Exception:
+                        continue
+            
+            return response
+            
+        except Exception as e:
+            # Create a mock response for connection errors
+            mock_response = requests.Response()
+            mock_response.status_code = 500
+            mock_response._content = str(e).encode()
+            return mock_response
     
     return await loop.run_in_executor(None, sync_request)
 
