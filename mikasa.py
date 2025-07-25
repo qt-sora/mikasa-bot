@@ -81,326 +81,7 @@ DEFAULT_PARAMS = {
     "num_inference_steps": 50,
     "width": 512,
     "height": 512,
-    "seed": async def settings_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle settings menu callback."""
-    user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
-    current_service = context.user_data.get('service', 'pollinations')
-    current_model = context.user_data.get('model', 'flux')
-    
-    settings_text = (
-        "⚙️ <b>Settings Menu</b>\n\n"
-        f"<b>Service:</b> {API_SERVICES.get(current_service, {}).get('name', 'Unknown')}\n"
-        f"<b>Model:</b> {current_model.upper()}\n"
-        f"<b>Size:</b> {user_settings['width']}x{user_settings['height']}\n"
-        f"<b>Quality:</b> {user_settings['num_inference_steps']} steps\n"
-        f"<b>Guidance:</b> {user_settings['guidance_scale']}\n\n"
-        "Customize your generation settings:"
-    )
-    
-    keyboard = [
-        [
-            InlineKeyboardButton("512x512", callback_data="size_512"),
-            InlineKeyboardButton("768x768", callback_data="size_768"),
-            InlineKeyboardButton("1024x1024", callback_data="size_1024")
-        ],
-        [
-            InlineKeyboardButton("⚡ Fast", callback_data="quality_fast"),
-            InlineKeyboardButton("⭐ Balanced", callback_data="quality_balanced"),
-            InlineKeyboardButton("💎 High", callback_data="quality_high")
-        ],
-        [
-            InlineKeyboardButton("🔄 Reset", callback_data="reset_settings"),
-            InlineKeyboardButton("⬅️ Back", callback_data="back_to_start")
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.callback_query.edit_message_text(
-        settings_text,
-        parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup
-    )
-
-async def help_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle help menu callback."""
-    help_text = (
-        "❓ <b>Help & Guide</b>\n\n"
-        "<b>🎨 How to Generate:</b>\n"
-        "• Type any text description\n"
-        "• Use /generate [prompt]\n"
-        "• Click 'Generate Sample'\n\n"
-        "<b>💡 Prompt Tips:</b>\n"
-        "• Be descriptive: 'anime girl with blue hair'\n"
-        "• Add style: 'realistic', 'cartoon', 'oil painting'\n"
-        "• Specify details: colors, lighting, mood\n"
-        "• Use quality terms: 'detailed', 'high quality', '4k'\n\n"
-        "<b>⚡ Commands:</b>\n"
-        "• /generate - Create image\n"
-        "• /model - Switch AI model\n"
-        "• /settings - Adjust parameters\n"
-        "• /help - Show this guide\n\n"
-        "<b>🌟 Example Prompts:</b>\n"
-        "• 'cyberpunk city at night, neon lights'\n"
-        "• 'cute cat in a garden, watercolor style'\n"
-        "• 'fantasy dragon, detailed digital art'"
-    )
-    
-    keyboard = [
-        [
-            InlineKeyboardButton("🎨 Try Sample", callback_data="sample"),
-            InlineKeyboardButton("🤖 Select Model", callback_data="select_model")
-        ],
-        [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.callback_query.edit_message_text(
-        help_text,
-        parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup
-    )
-
-async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle callback queries from inline keyboards."""
-    query = update.callback_query
-    await query.answer()
-    
-    data = query.data
-    user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
-    
-    if data == "sample":
-        await generate_image(update, context, "beautiful anime girl with long blue hair, detailed art")
-    
-    elif data == "select_model":
-        await model_selection_menu(update, context)
-    
-    elif data == "settings_menu":
-        await settings_menu_callback(update, context)
-    
-    elif data == "help_menu":
-        await help_menu_callback(update, context)
-    
-    elif data == "back_to_start":
-        # Recreate start menu
-        welcome_message = (
-            "🎨 <b>Welcome to AI Image Generator Bot!</b>\n\n"
-            "I can generate stunning images using advanced AI models. "
-            "Create anime art, realistic photos, fantasy scenes, and much more!\n\n"
-            "<b>✨ Features:</b>\n"
-            "• Multiple AI models (FLUX, Stable Diffusion, etc.)\n"
-            "• High-quality image generation\n"
-            "• Customizable settings & styles\n"
-            "• Free and unlimited usage\n\n"
-            "<b>🚀 Quick Start:</b>\n"
-            "Just type your prompt or use the buttons below!"
-        )
-        
-        keyboard = [
-            [
-                InlineKeyboardButton("📢 Updates", url="https://t.me/YOUR_CHANNEL"),
-                InlineKeyboardButton("💬 Support", url="https://t.me/YOUR_GROUP")
-            ],
-            [
-                InlineKeyboardButton("➕ Add Me To Your Group", url=f"https://t.me/{context.bot.username}?startgroup=true")
-            ],
-            [
-                InlineKeyboardButton("🤖 Select AI Model", callback_data="select_model"),
-                InlineKeyboardButton("🎨 Generate Sample", callback_data="sample")
-            ],
-            [
-                InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu"),
-                InlineKeyboardButton("❓ Help", callback_data="help_menu")
-            ]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await query.edit_message_text(
-            welcome_message,
-            parse_mode=ParseMode.HTML,
-            reply_markup=reply_markup
-        )
-    
-    elif data.startswith("model_"):
-        # Handle model selection: model_service_modelname
-        parts = data.split("_", 2)
-        if len(parts) >= 3:
-            service = parts[1]
-            model = parts[2]
-            
-            context.user_data['service'] = service
-            context.user_data['model'] = model
-            
-            # Get model info for display
-            model_info = API_SERVICES.get(service, {}).get("models", {}).get(model, {})
-            model_name = model_info.get("name", model.upper())
-            service_name = API_SERVICES.get(service, {}).get("name", service)
-            
-            await query.edit_message_text(
-                f"✅ <b>Model Selected</b>\n\n"
-                f"<b>Service:</b> {service_name}\n"
-                f"<b>Model:</b> {model_name}\n"
-                f"<b>Description:</b> {model_info.get('description', 'No description available')}\n\n"
-                "You can now generate images with this model!",
-                parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([
-                    [
-                        InlineKeyboardButton("🎨 Generate Sample", callback_data="sample"),
-                        InlineKeyboardButton("🤖 Change Model", callback_data="select_model")
-                    ],
-                    [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
-                ])
-            )
-    
-    elif data.startswith("service_info_"):
-        service = data.split("_", 2)[2]
-        
-        if service == "pollinations":
-            info_text = (
-                "🌸 <b>Pollinations AI</b>\n\n"
-                "<b>✅ Advantages:</b>\n"
-                "• Completely free\n"
-                "• No registration required\n"
-                "• Fast generation (10-30 seconds)\n"
-                "• Multiple models available\n"
-                "• No rate limits\n\n"
-                "<b>📝 Models:</b>\n"
-                "• FLUX - Highest quality\n"
-                "• Turbo - Fastest generation\n\n"
-                "<b>💡 Best for:</b>\n"
-                "General use, unlimited generation"
-            )
-        elif service == "huggingface":
-            info_text = (
-                "🤗 <b>Hugging Face</b>\n\n"
-                "<b>✅ Advantages:</b>\n"
-                "• Multiple specialized models\n"
-                "• High-quality generation\n"
-                "• Advanced customization\n\n"
-                "<b>⚠️ Limitations:</b>\n"
-                "• Monthly quota limits\n"
-                "• May require PRO subscription\n\n"
-                "<b>📝 Models:</b>\n"
-                "• FLUX.1-dev - Latest & best\n"
-                "• Stable Diffusion XL\n"
-                "• Anime specialized models\n\n"
-                "<b>💡 Best for:</b>\n"
-                "High-quality, specialized generation"
-            )
-        else:
-            info_text = "Service information not available."
-        
-        await query.edit_message_text(
-            info_text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("⬅️ Back to Models", callback_data="select_model")]
-            ])
-        )
-    
-    elif data.startswith("size_"):
-        size = int(data.split("_")[1])
-        user_settings['width'] = size
-        user_settings['height'] = size
-        context.user_data['settings'] = user_settings
-        
-        await query.edit_message_text(
-            f"✅ <b>Size updated to {size}x{size}</b>\n\n"
-            "You can now generate images with the new size!",
-            parse_mode=ParseMode.HTML,
-            reply_markup=InlineKeyboardMarkup([
-                [
-                    InlineKeyboardButton("🎨 Generate Sample", callback_data="sample"),
-                    InlineKeyboardButton("⚙️ More Settings", callback_data="settings_menu")
-                ],
-                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
-            ])
-        )
-    
-    elif data == "quality_fast":
-        user_settings['num_inference_steps'] = 20
-        user_settings['guidance_scale'] = 5.0
-        context.user_data['settings'] = user_settings
-        
-        await query.edit_message_text(
-            "⚡ <b>Quality set to Fast</b>\n\n"
-            "• 20 inference steps\n"
-            "• 5.0 guidance scale\n"
-            "• Faster generation (~10-15 seconds)\n\n"
-            "Images will generate quickly with good quality.",
-            parse_mode=ParseMode.HTML,
-            reply_markup=InlineKeyboardMarkup([
-                [
-                    InlineKeyboardButton("🎨 Test Now", callback_data="sample"),
-                    InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu")
-                ],
-                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
-            ])
-        )
-    
-    elif data == "quality_balanced":
-        user_settings['num_inference_steps'] = 50
-        user_settings['guidance_scale'] = 7.5
-        context.user_data['settings'] = user_settings
-        
-        await query.edit_message_text(
-            "⭐ <b>Quality set to Balanced</b>\n\n"
-            "• 50 inference steps\n"
-            "• 7.5 guidance scale\n"
-            "• Moderate generation time (~20-30 seconds)\n\n"
-            "Perfect balance of quality and speed.",
-            parse_mode=ParseMode.HTML,
-            reply_markup=InlineKeyboardMarkup([
-                [
-                    InlineKeyboardButton("🎨 Test Now", callback_data="sample"),
-                    InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu")
-                ],
-                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
-            ])
-        )
-    
-    elif data == "quality_high":
-        user_settings['num_inference_steps'] = 75
-        user_settings['guidance_scale'] = 10.0
-        context.user_data['settings'] = user_settings
-        
-        await query.edit_message_text(
-            "💎 <b>Quality set to High</b>\n\n"
-            "• 75 inference steps\n"
-            "• 10.0 guidance scale\n"
-            "• Longer generation time (~30-60 seconds)\n\n"
-            "Maximum quality for detailed images.",
-            parse_mode=ParseMode.HTML,
-            reply_markup=InlineKeyboardMarkup([
-                [
-                    InlineKeyboardButton("🎨 Test Now", callback_data="sample"),
-                    InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu")
-                ],
-                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
-            ])
-        )
-    
-    elif data == "reset_settings":
-        context.user_data['settings'] = DEFAULT_PARAMS.copy()
-        context.user_data['service'] = 'pollinations'
-        context.user_data['model'] = 'flux'
-        
-        await query.edit_message_text(
-            "🔄 <b>Settings Reset</b>\n\n"
-            "All settings restored to default values:\n"
-            "• Service: Pollinations AI\n"
-            "• Model: FLUX\n"
-            "• Size: 512x512\n"
-            "• Quality: Balanced\n\n"
-            "Ready to generate!",
-            parse_mode=ParseMode.HTML,
-            reply_markup=InlineKeyboardMarkup([
-                [
-                    InlineKeyboardButton("🎨 Generate Sample", callback_data="sample"),
-                    InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu")
-                ],
-                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
-            ])
-        ),
+    "seed": None,
     "service": "pollinations",
     "model": "flux"
 }
@@ -515,7 +196,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "• Mention colors, lighting, and mood\n"
         "• Keep prompts under 200 characters\n\n"
         "<b>Services:</b>\n"
-        "• Use <code>/service</code> to switch between AI providers\n"
+        "• Use <code>/model</code> to switch between AI providers\n"
         "• Use <code>/settings</code> to adjust image quality and size"
     )
     
@@ -525,10 +206,12 @@ async def settings_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """Handle the /settings command."""
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_service = context.user_data.get('service', 'pollinations')
+    current_model = context.user_data.get('model', 'flux')
     
     settings_text = (
         "⚙️ <b>Current Settings:</b>\n\n"
         f"🔄 Service: {API_SERVICES.get(current_service, {}).get('name', 'Unknown')}\n"
+        f"🤖 Model: {current_model.upper()}\n"
         f"📐 Size: {user_settings['width']}x{user_settings['height']}\n"
         f"🎯 Guidance Scale: {user_settings['guidance_scale']}\n"
         f"🔄 Inference Steps: {user_settings['num_inference_steps']}\n\n"
@@ -551,6 +234,85 @@ async def settings_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     
     await update.message.reply_text(
         settings_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
+    )
+
+async def settings_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle settings menu callback."""
+    user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
+    current_service = context.user_data.get('service', 'pollinations')
+    current_model = context.user_data.get('model', 'flux')
+    
+    settings_text = (
+        "⚙️ <b>Settings Menu</b>\n\n"
+        f"<b>Service:</b> {API_SERVICES.get(current_service, {}).get('name', 'Unknown')}\n"
+        f"<b>Model:</b> {current_model.upper()}\n"
+        f"<b>Size:</b> {user_settings['width']}x{user_settings['height']}\n"
+        f"<b>Quality:</b> {user_settings['num_inference_steps']} steps\n"
+        f"<b>Guidance:</b> {user_settings['guidance_scale']}\n\n"
+        "Customize your generation settings:"
+    )
+    
+    keyboard = [
+        [
+            InlineKeyboardButton("512x512", callback_data="size_512"),
+            InlineKeyboardButton("768x768", callback_data="size_768"),
+            InlineKeyboardButton("1024x1024", callback_data="size_1024")
+        ],
+        [
+            InlineKeyboardButton("⚡ Fast", callback_data="quality_fast"),
+            InlineKeyboardButton("⭐ Balanced", callback_data="quality_balanced"),
+            InlineKeyboardButton("💎 High", callback_data="quality_high")
+        ],
+        [
+            InlineKeyboardButton("🔄 Reset", callback_data="reset_settings"),
+            InlineKeyboardButton("⬅️ Back", callback_data="back_to_start")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(
+        settings_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
+    )
+
+async def help_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle help menu callback."""
+    help_text = (
+        "❓ <b>Help & Guide</b>\n\n"
+        "<b>🎨 How to Generate:</b>\n"
+        "• Type any text description\n"
+        "• Use /generate [prompt]\n"
+        "• Click 'Generate Sample'\n\n"
+        "<b>💡 Prompt Tips:</b>\n"
+        "• Be descriptive: 'anime girl with blue hair'\n"
+        "• Add style: 'realistic', 'cartoon', 'oil painting'\n"
+        "• Specify details: colors, lighting, mood\n"
+        "• Use quality terms: 'detailed', 'high quality', '4k'\n\n"
+        "<b>⚡ Commands:</b>\n"
+        "• /generate - Create image\n"
+        "• /model - Switch AI model\n"
+        "• /settings - Adjust parameters\n"
+        "• /help - Show this guide\n\n"
+        "<b>🌟 Example Prompts:</b>\n"
+        "• 'cyberpunk city at night, neon lights'\n"
+        "• 'cute cat in a garden, watercolor style'\n"
+        "• 'fantasy dragon, detailed digital art'"
+    )
+    
+    keyboard = [
+        [
+            InlineKeyboardButton("🎨 Try Sample", callback_data="sample"),
+            InlineKeyboardButton("🤖 Select Model", callback_data="select_model")
+        ],
+        [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(
+        help_text,
         parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
@@ -812,36 +574,128 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     if data == "sample":
         await generate_image(update, context, "beautiful anime girl with long blue hair, detailed art")
     
-    elif data.startswith("service_"):
-        service = data.split("_", 1)[1]
+    elif data == "select_model":
+        await model_selection_menu(update, context)
+    
+    elif data == "settings_menu":
+        await settings_menu_callback(update, context)
+    
+    elif data == "help_menu":
+        await help_menu_callback(update, context)
+    
+    elif data == "back_to_start":
+        # Recreate start menu
+        welcome_message = (
+            "🎨 <b>Welcome to AI Image Generator Bot!</b>\n\n"
+            "I can generate stunning images using advanced AI models. "
+            "Create anime art, realistic photos, fantasy scenes, and much more!\n\n"
+            "<b>✨ Features:</b>\n"
+            "• Multiple AI models (FLUX, Stable Diffusion, etc.)\n"
+            "• High-quality image generation\n"
+            "• Customizable settings & styles\n"
+            "• Free and unlimited usage\n\n"
+            "<b>🚀 Quick Start:</b>\n"
+            "Just type your prompt or use the buttons below!"
+        )
         
-        if service == "info":
-            info_text = (
-                "ℹ️ <b>AI Service Information</b>\n\n"
-                "<b>🌸 Pollinations AI:</b>\n"
-                "• Completely free\n"
-                "• No registration required\n"
-                "• Fast generation\n"
-                "• Uses FLUX model\n\n"
-                "<b>🤗 Hugging Face:</b>\n"
-                "• Free tier with limits\n"
-                "• High quality models\n"
-                "• PRO: $9/month for more credits\n"
-                "• Multiple model options\n\n"
-                "<b>Recommendation:</b>\n"
-                "Start with Pollinations for free unlimited usage!"
-            )
-            await query.edit_message_text(info_text, parse_mode=ParseMode.HTML)
+        keyboard = [
+            [
+                InlineKeyboardButton("📢 Updates", url="https://t.me/YOUR_CHANNEL"),
+                InlineKeyboardButton("💬 Support", url="https://t.me/YOUR_GROUP")
+            ],
+            [
+                InlineKeyboardButton("➕ Add Me To Your Group", url=f"https://t.me/{context.bot.username}?startgroup=true")
+            ],
+            [
+                InlineKeyboardButton("🤖 Select AI Model", callback_data="select_model"),
+                InlineKeyboardButton("🎨 Generate Sample", callback_data="sample")
+            ],
+            [
+                InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu"),
+                InlineKeyboardButton("❓ Help", callback_data="help_menu")
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.edit_message_text(
+            welcome_message,
+            parse_mode=ParseMode.HTML,
+            reply_markup=reply_markup
+        )
+    
+    elif data.startswith("model_"):
+        # Handle model selection: model_service_modelname
+        parts = data.split("_", 2)
+        if len(parts) >= 3:
+            service = parts[1]
+            model = parts[2]
             
-        elif service in API_SERVICES:
             context.user_data['service'] = service
-            service_name = API_SERVICES[service]['name']
+            context.user_data['model'] = model
+            
+            # Get model info for display
+            model_info = API_SERVICES.get(service, {}).get("models", {}).get(model, {})
+            model_name = model_info.get("name", model.upper())
+            service_name = API_SERVICES.get(service, {}).get("name", service)
             
             await query.edit_message_text(
-                f"✅ <b>Service changed to {service_name}</b>\n\n"
-                "You can now generate images using this service!",
-                parse_mode=ParseMode.HTML
+                f"✅ <b>Model Selected</b>\n\n"
+                f"<b>Service:</b> {service_name}\n"
+                f"<b>Model:</b> {model_name}\n"
+                f"<b>Description:</b> {model_info.get('description', 'No description available')}\n\n"
+                "You can now generate images with this model!",
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup([
+                    [
+                        InlineKeyboardButton("🎨 Generate Sample", callback_data="sample"),
+                        InlineKeyboardButton("🤖 Change Model", callback_data="select_model")
+                    ],
+                    [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
+                ])
             )
+    
+    elif data.startswith("service_info_"):
+        service = data.split("_", 2)[2]
+        
+        if service == "pollinations":
+            info_text = (
+                "🌸 <b>Pollinations AI</b>\n\n"
+                "<b>✅ Advantages:</b>\n"
+                "• Completely free\n"
+                "• No registration required\n"
+                "• Fast generation (10-30 seconds)\n"
+                "• Multiple models available\n"
+                "• No rate limits\n\n"
+                "<b>📝 Models:</b>\n"
+                "• FLUX - Highest quality\n"
+                "• Turbo - Fastest generation\n\n"
+                "<b>💡 Best for:</b>\n"
+                "General use, unlimited generation"
+            )
+        elif service == "huggingface":
+            info_text = (
+                "🤗 <b>Hugging Face</b>\n\n"
+                "<b>✅ Advantages:</b>\n"
+                "• Multiple specialized models\n"
+                "• High-quality generation\n"
+                "• Advanced customization\n\n"
+                "<b>⚠️ Limitations:</b>\n"
+                "• Monthly quota limits\n"
+                "• May require PRO subscription\n\n"
+                "<b>📝 Models:</b>\n"
+                "• FLUX.1-dev - Latest & best\n"
+                "• Stable Diffusion XL\n"
+                "• Anime specialized models\n\n"
+                "<b>💡 Best for:</b>\n"
+                "High-quality, specialized generation"
+            )
+        await query.edit_message_text(
+            info_text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("⬅️ Back to Models", callback_data="select_model")]
+            ])
+        )
     
     elif data.startswith("size_"):
         size = int(data.split("_")[1])
@@ -852,18 +706,56 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         await query.edit_message_text(
             f"✅ <b>Size updated to {size}x{size}</b>\n\n"
             "You can now generate images with the new size!",
-            parse_mode=ParseMode.HTML
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("🎨 Generate Sample", callback_data="sample"),
+                    InlineKeyboardButton("⚙️ More Settings", callback_data="settings_menu")
+                ],
+                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
+            ])
         )
     
     elif data == "quality_fast":
-        user_settings['num_inference_steps'] = 25
+        user_settings['num_inference_steps'] = 20
         user_settings['guidance_scale'] = 5.0
         context.user_data['settings'] = user_settings
         
         await query.edit_message_text(
-            "✅ <b>Quality set to Fast</b>\n\n"
-            "Images will generate faster but with lower quality.",
-            parse_mode=ParseMode.HTML
+            "⚡ <b>Quality set to Fast</b>\n\n"
+            "• 20 inference steps\n"
+            "• 5.0 guidance scale\n"
+            "• Faster generation (~10-15 seconds)\n\n"
+            "Images will generate quickly with good quality.",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("🎨 Test Now", callback_data="sample"),
+                    InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu")
+                ],
+                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
+            ])
+        )
+    
+    elif data == "quality_balanced":
+        user_settings['num_inference_steps'] = 50
+        user_settings['guidance_scale'] = 7.5
+        context.user_data['settings'] = user_settings
+        
+        await query.edit_message_text(
+            "⭐ <b>Quality set to Balanced</b>\n\n"
+            "• 50 inference steps\n"
+            "• 7.5 guidance scale\n"
+            "• Moderate generation time (~20-30 seconds)\n\n"
+            "Perfect balance of quality and speed.",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("🎨 Test Now", callback_data="sample"),
+                    InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu")
+                ],
+                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
+            ])
         )
     
     elif data == "quality_high":
@@ -872,18 +764,42 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         context.user_data['settings'] = user_settings
         
         await query.edit_message_text(
-            "✅ <b>Quality set to High</b>\n\n"
-            "Images will take longer but have better quality.",
-            parse_mode=ParseMode.HTML
+            "💎 <b>Quality set to High</b>\n\n"
+            "• 75 inference steps\n"
+            "• 10.0 guidance scale\n"
+            "• Longer generation time (~30-60 seconds)\n\n"
+            "Maximum quality for detailed images.",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("🎨 Test Now", callback_data="sample"),
+                    InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu")
+                ],
+                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
+            ])
         )
     
     elif data == "reset_settings":
         context.user_data['settings'] = DEFAULT_PARAMS.copy()
+        context.user_data['service'] = 'pollinations'
+        context.user_data['model'] = 'flux'
         
         await query.edit_message_text(
-            "✅ <b>Settings reset to default</b>\n\n"
-            "All parameters have been restored to their default values.",
-            parse_mode=ParseMode.HTML
+            "🔄 <b>Settings Reset</b>\n\n"
+            "All settings restored to default values:\n"
+            "• Service: Pollinations AI\n"
+            "• Model: FLUX\n"
+            "• Size: 512x512\n"
+            "• Quality: Balanced\n\n"
+            "Ready to generate!",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("🎨 Generate Sample", callback_data="sample"),
+                    InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu")
+                ],
+                [InlineKeyboardButton("⬅️ Back to Menu", callback_data="back_to_start")]
+            ])
         )
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
