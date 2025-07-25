@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # Bot configuration
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or "7265809612:AAHaUYkYPAuPoH6SHuWMZoiK5x--_gJDK3s"
-HUGGING_FACE = os.getenv("HUGGING_FACE_TOKEN") or "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"
+HUGGING_FACE = os.getenv("HUGGING_FACE_TOKEN") or ""
 MODEL_URL = "https://api-inference.huggingface.co/models/eimiss/EimisAnimeDiffusion_2.0v"
 
 # Default generation parameters
