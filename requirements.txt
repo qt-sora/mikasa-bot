@@ -1,0 +1,8 @@
+# Telegram Bot Framework
+python-telegram-bot==22.3
+
+# HTTP Requests
+requests==2.31.0
+
+# Image Processing
+Pillow==10.1.0
