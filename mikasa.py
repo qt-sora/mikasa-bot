@@ -102,27 +102,18 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Handle the /help command."""
     help_text = (
         "🤖 <b>AI Image Generator Bot Help</b>\n\n"
-        "<b>Basic Usage:</b>\n"
-        "<code>/generate &lt;your prompt here&gt;</code>\n\n"
-        "<b>Example Prompts:</b>\n"
-        "• <code>anime girl with purple hair and green eyes</code>\n"
-        "• <code>cyberpunk city at night, neon lights</code>\n"
-        "• <code>fantasy landscape with mountains and dragons</code>\n\n"
-        "<b>Available Commands:</b>\n"
-        "• <code>/generate</code> - Create image from prompt\n"
-        "• <code>/help</code> - Show this help message\n"
-        "• <code>/start</code> - Return to main menu\n\n"
-        "<b>Group Feature:</b>\n"
-        "• Type <code>mikasa [your prompt]</code> to generate images in groups\n"
-        "• Example: <code>mikasa cute anime girl with blue hair</code>\n\n"
-        "<b>Service:</b>\n"
-        "Powered by Pollinations AI - Free and unlimited!"
+        "<b>Quick Start:</b>\n"
+        "• Private: Type any prompt\n"
+        "• Groups: <code>mikasa [prompt]</code>\n"
+        "• Commands: <code>/generate [prompt]</code>\n\n"
+        "<b>Example:</b>\n"
+        "<code>anime girl with blue hair</code>\n\n"
+        "🌸 <b>Powered by Pollinations AI</b>"
     )
     
     keyboard = [
         [
-            InlineKeyboardButton("📖 Expand Guide", callback_data="expand_guide"),
-            InlineKeyboardButton("📄 Minimize Guide", callback_data="minimize_guide")
+            InlineKeyboardButton("📖 Expand Guide", callback_data="expand_guide")
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -617,8 +608,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         
         keyboard = [
             [
-                InlineKeyboardButton("📄 Minimize Guide", callback_data="minimize_guide"),
-                InlineKeyboardButton("🎨 Try Now", callback_data="sample")
+                InlineKeyboardButton("📄 Minimize Guide", callback_data="minimize_guide")
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -643,8 +633,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         
         keyboard = [
             [
-                InlineKeyboardButton("📖 Expand Guide", callback_data="expand_guide"),
-                InlineKeyboardButton("🎨 Try Now", callback_data="sample")
+                InlineKeyboardButton("📖 Expand Guide", callback_data="expand_guide")
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
