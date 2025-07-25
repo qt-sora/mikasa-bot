@@ -8,7 +8,7 @@ from PIL import Image
 import base64
 import json
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import (
     Application, 
     CommandHandler, 
@@ -215,6 +215,11 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
     # Update settings with current model
     user_settings['model'] = current_model
     
+    # Apply style suffix if available
+    style_suffix = context.user_data.get('style_suffix', '')
+    if style_suffix:
+        prompt = f"{prompt}, {style_suffix}"
+    
     # Determine which message object to use
     if update.callback_query:
         chat_id = update.effective_chat.id
@@ -223,52 +228,39 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
         chat_id = None
         send_method = update.message.reply_text
     
-    # Get model name for display
-    model_info = API_SERVICE["models"].get(current_model, {})
-    model_display = model_info.get("name", current_model.upper())
-    
-    # Send initial status message
+    # Send simple emoji status message
     if chat_id:
         status_message = await send_method(
             chat_id=chat_id,
-            text=f"🎨 <b>Generating image...</b>\n\n"
-                 f"<b>Service:</b> {API_SERVICE['name']}\n"
-                 f"<b>Model:</b> {model_display}\n"
-                 f"<b>Prompt:</b> {prompt[:100]}{'...' if len(prompt) > 100 else ''}\n"
-                 f"<b>Size:</b> {user_settings['width']}x{user_settings['height']}",
-            parse_mode=ParseMode.HTML
+            text="🌺"
         )
     else:
-        status_message = await send_method(
-            f"🎨 <b>Generating image...</b>\n\n"
-            f"<b>Service:</b> {API_SERVICE['name']}\n"
-            f"<b>Model:</b> {model_display}\n"
-            f"<b>Prompt:</b> {prompt[:100]}{'...' if len(prompt) > 100 else ''}\n"
-            f"<b>Size:</b> {user_settings['width']}x{user_settings['height']}",
-            parse_mode=ParseMode.HTML
-        )
+        status_message = await send_method("🌺")
     
     try:
         image_bytes = await generate_image_pollinations(prompt, user_settings)
         
         if image_bytes:
-            # Send the generated image
+            # Edit the emoji message with the generated image
             image_stream = BytesIO(image_bytes)
-            await context.bot.send_photo(
+            
+            # Get clean prompt (remove style suffix for display)
+            clean_prompt = prompt
+            if context.user_data.get('style_suffix'):
+                clean_prompt = prompt.replace(', ' + context.user_data.get('style_suffix'), '')
+            
+            await context.bot.edit_message_media(
                 chat_id=update.effective_chat.id,
-                photo=image_stream,
-                caption=f"🎨 <b>Generated Image</b>\n\n"
-                       f"<b>Service:</b> {API_SERVICE['name']}\n"
-                       f"<b>Model:</b> {model_display}\n"
-                       f"<b>Prompt:</b> {prompt}",
-                parse_mode=ParseMode.HTML
+                message_id=status_message.message_id,
+                media=InputMediaPhoto(
+                    media=image_stream,
+                    caption=f"🎨 <b>Generated Image</b>\n\n<b>Prompt:</b> {clean_prompt}",
+                    parse_mode=ParseMode.HTML
+                )
             )
             
-            # Delete status message
-            await status_message.delete()
-            
         else:
-            # Generation failed
+            # Generation failed - edit the emoji message with error
             error_message = (
                 "❌ <b>Generation failed</b>\n\n"
                 "The image generation service is currently unavailable. This might be due to:\n"
