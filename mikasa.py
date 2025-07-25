@@ -25,8 +25,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Bot configuration
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or "7265809612:AAHaUYkYPAuPoH6SHuWMZoiK5x--_gJDK3s"
-HUGGING_FACE = os.getenv("HUGGING_FACE_TOKEN") or "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"
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or "YOUR_TELEGRAM_BOT_TOKEN_HERE"
+HUGGING_FACE = os.getenv("HUGGING_FACE_TOKEN") or "YOUR_HUGGING_FACE_TOKEN_HERE"
 MODEL_URL = "https://api-inference.huggingface.co/models/eimiss/EimisAnimeDiffusion_2.0v"
 
 # Default generation parameters
@@ -143,6 +143,25 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
     """Generate an image based on the given prompt."""
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     
+    # Check if token is properly configured
+    if HUGGING_FACE == "YOUR_HUGGING_FACE_TOKEN_HERE":
+        error_msg = (
+            "❌ <b>Configuration Error</b>\n\n"
+            "Hugging Face API token is not configured. Please:\n"
+            "1. Get a token from https://huggingface.co/settings/tokens\n"
+            "2. Set the HUGGING_FACE_TOKEN environment variable\n"
+            "3. Or update the token in the code"
+        )
+        if update.callback_query:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=error_msg,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await update.message.reply_text(error_msg, parse_mode=ParseMode.HTML)
+        return
+    
     # Determine which message object to use based on update type
     if update.callback_query:
         # For callback queries, send a new message
@@ -199,16 +218,32 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
             # Delete status message
             await status_message.delete()
             
+        elif response.status_code == 401:
+            await status_message.edit_text(
+                "❌ <b>Authentication Error</b>\n\n"
+                "Invalid Hugging Face API token. Please:\n"
+                "1. Check your token at https://huggingface.co/settings/tokens\n"
+                "2. Make sure it has 'Read' permissions\n"
+                "3. Update your environment variables or code",
+                parse_mode=ParseMode.HTML
+            )
         elif response.status_code == 503:
             await status_message.edit_text(
                 "⏳ <b>Model is loading...</b>\n\n"
                 "The AI model is currently starting up. Please try again in 30-60 seconds.",
                 parse_mode=ParseMode.HTML
             )
+        elif response.status_code == 429:
+            await status_message.edit_text(
+                "⏳ <b>Rate limit exceeded</b>\n\n"
+                "Too many requests. Please wait a moment and try again.",
+                parse_mode=ParseMode.HTML
+            )
         else:
             await status_message.edit_text(
                 f"❌ <b>Generation failed</b>\n\n"
                 f"Error code: {response.status_code}\n"
+                f"Response: {response.text[:200] if hasattr(response, 'text') else 'Unknown error'}\n"
                 f"Please try again with a different prompt.",
                 parse_mode=ParseMode.HTML
             )
