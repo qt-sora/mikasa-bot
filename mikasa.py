@@ -7,6 +7,8 @@ import requests
 from PIL import Image
 import base64
 import json
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import (
@@ -27,7 +29,26 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Bot configuration
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or "YOUR_TELEGRAM_BOT_TOKEN_HERE"
+BOT_TOKEN = os.getenv("BOT_TOKEN") or "YOUR_TELEGRAM_BOT_TOKEN_HERE"
+
+# HTTP Server for uptime monitoring
+class UptimeHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(b"Bot is running!")
+    
+    def log_message(self, format, *args):
+        # Suppress HTTP server logs
+        pass
+
+def start_uptime_server():
+    """Start HTTP server for uptime monitoring"""
+    port = int(os.environ.get('PORT', 8080))
+    server = HTTPServer(('0.0.0.0', port), UptimeHandler)
+    logger.info(f"Starting uptime server on port {port}")
+    server.serve_forever()
 
 # Pollinations AI configuration
 API_SERVICE = {
@@ -184,7 +205,7 @@ async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TY
     parts = message_text.split(None, 1)  # Split on whitespace, max 1 split
     
     if len(parts) == 1:
-        # Only "mikasa" was said, no prompt
+        # Only "mikasa" was said, no prompt - remove random button
         help_message = (
             "🌸 <b>Hey there!</b>\n\n"
             "I see you called me with 'mikasa'! To generate an image, use:\n\n"
@@ -195,8 +216,7 @@ async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TY
         
         keyboard = [
             [
-                InlineKeyboardButton("🗑️ Delete", callback_data="delete_message"),
-                InlineKeyboardButton("🎲 Random", callback_data="mikasa_random")
+                InlineKeyboardButton("🗑️ Delete", callback_data="delete_message")
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -649,42 +669,6 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             await query.message.delete()
         except Exception:
             await query.answer("Cannot delete this message.", show_alert=True)
-    
-    elif data == "mikasa_random":
-        import random
-        random_prompts = [
-            "beautiful anime girl with colorful hair",
-            "cute cat in a magical forest",
-            "cyberpunk warrior with glowing sword",
-            "fantasy dragon in misty mountains",
-            "kawaii girl with big eyes and pink hair",
-            "robotic angel with mechanical wings",
-            "peaceful cherry blossom garden",
-            "mysterious witch with glowing crystal"
-        ]
-        random_prompt = random.choice(random_prompts)
-        
-        # Create a fake update object for generation
-        class FakeMessage:
-            def __init__(self, original_message):
-                self.text = f"mikasa {random_prompt}"
-                self.chat = original_message.chat
-                self.from_user = original_message.from_user
-                self.reply_text = original_message.reply_text
-        
-        fake_update = type('', (), {})()
-        fake_update.message = FakeMessage(query.message)
-        fake_update.effective_chat = query.message.chat
-        fake_update.effective_user = query.message.from_user
-        
-        # Delete the help message first
-        try:
-            await query.message.delete()
-        except Exception:
-            pass
-        
-        # Generate with random prompt
-        await generate_image_with_reply(fake_update, context, random_prompt)
 
 async def model_selection_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show AI model selection menu."""
@@ -897,6 +881,10 @@ async def setup_bot_commands(application: Application) -> None:
 def main():
     """Main function to run the bot."""
     logger.info(f"Starting bot with token: {BOT_TOKEN[:10]}...")
+    
+    # Start uptime server in a separate thread
+    uptime_thread = threading.Thread(target=start_uptime_server, daemon=True)
+    uptime_thread.start()
     
     # Create application
     application = Application.builder().token(BOT_TOKEN).build()
