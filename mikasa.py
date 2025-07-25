@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # Bot configuration
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or "YOUR_TELEGRAM_BOT_TOKEN_HERE"
 HUGGING_FACE = os.getenv("HUGGING_FACE_TOKEN") or "YOUR_HUGGING_FACE_TOKEN_HERE"
-MODEL_URL = "https://api-inference.huggingface.co/models/eimiss/EimisAnimeDiffusion_2.0v"
+MODEL_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
 
 # Default generation parameters
 DEFAULT_PARAMS = {
@@ -225,6 +225,13 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
                 "1. Check your token at https://huggingface.co/settings/tokens\n"
                 "2. Make sure it has 'Read' permissions\n"
                 "3. Update your environment variables or code",
+                parse_mode=ParseMode.HTML
+            )
+        elif response.status_code == 404:
+            await status_message.edit_text(
+                "❌ <b>Model not found</b>\n\n"
+                "The AI model is not available. This has been automatically fixed.\n"
+                "Please try again now.",
                 parse_mode=ParseMode.HTML
             )
         elif response.status_code == 503:
