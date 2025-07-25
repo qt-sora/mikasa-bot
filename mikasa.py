@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # Bot configuration
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or "7265809612:AAHaUYkYPAuPoH6SHuWMZoiK5x--_gJDK3s"
-HUGGING_FACE = os.getenv("HUGGING_FACE_TOKEN") or ""
+HUGGING_FACE = os.getenv("HUGGING_FACE_TOKEN") or "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"
 MODEL_URL = "https://api-inference.huggingface.co/models/eimiss/EimisAnimeDiffusion_2.0v"
 
 # Default generation parameters
@@ -143,14 +143,36 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
     """Generate an image based on the given prompt."""
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     
-    # Send initial message
-    status_message = await update.message.reply_text(
-        f"🎨 <b>Generating image...</b>\n\n"
-        f"<b>Prompt:</b> {prompt[:100]}{'...' if len(prompt) > 100 else ''}\n"
-        f"<b>Settings:</b> {user_settings['width']}x{user_settings['height']}, "
-        f"{user_settings['num_inference_steps']} steps",
-        parse_mode=ParseMode.HTML
-    )
+    # Determine which message object to use based on update type
+    if update.callback_query:
+        # For callback queries, send a new message
+        message_obj = update.callback_query.message
+        send_method = context.bot.send_message
+        chat_id = update.effective_chat.id
+    else:
+        # For regular messages, reply to the message
+        message_obj = update.message
+        send_method = update.message.reply_text
+        chat_id = None
+    
+    # Send initial status message
+    if chat_id:
+        status_message = await send_method(
+            chat_id=chat_id,
+            text=f"🎨 <b>Generating image...</b>\n\n"
+                 f"<b>Prompt:</b> {prompt[:100]}{'...' if len(prompt) > 100 else ''}\n"
+                 f"<b>Settings:</b> {user_settings['width']}x{user_settings['height']}, "
+                 f"{user_settings['num_inference_steps']} steps",
+            parse_mode=ParseMode.HTML
+        )
+    else:
+        status_message = await send_method(
+            f"🎨 <b>Generating image...</b>\n\n"
+            f"<b>Prompt:</b> {prompt[:100]}{'...' if len(prompt) > 100 else ''}\n"
+            f"<b>Settings:</b> {user_settings['width']}x{user_settings['height']}, "
+            f"{user_settings['num_inference_steps']} steps",
+            parse_mode=ParseMode.HTML
+        )
     
     try:
         # Prepare request payload
@@ -193,11 +215,21 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
             
     except Exception as e:
         logger.error(f"Error generating image: {str(e)}")
-        await status_message.edit_text(
-            "❌ <b>An error occurred</b>\n\n"
-            "Please try again later or contact support.",
-            parse_mode=ParseMode.HTML
-        )
+        try:
+            await status_message.edit_text(
+                "❌ <b>An error occurred</b>\n\n"
+                "Please try again later or contact support.",
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as edit_error:
+            logger.error(f"Error editing status message: {str(edit_error)}")
+            # If editing fails, send a new message
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="❌ <b>An error occurred</b>\n\n"
+                     "Please try again later or contact support.",
+                parse_mode=ParseMode.HTML
+            )
 
 async def make_api_request(payload: dict) -> requests.Response:
     """Make async API request to Hugging Face."""
@@ -222,6 +254,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     
     if data == "sample":
+        # For sample generation, call generate_image with the callback query update
         await generate_image(update, context, "beautiful anime girl with long blue hair, detailed art")
     
     elif data.startswith("size_"):
@@ -271,10 +304,15 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """Handle errors."""
     logger.error(f"Exception while handling an update: {context.error}")
     
-    if update and update.effective_message:
-        await update.effective_message.reply_text(
-            "❌ An unexpected error occurred. Please try again."
-        )
+    # Try to send error message to user if possible
+    try:
+        if update and update.effective_chat:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="❌ An unexpected error occurred. Please try again."
+            )
+    except Exception as e:
+        logger.error(f"Failed to send error message to user: {str(e)}")
 
 def main():
     """Main function to run the bot."""
