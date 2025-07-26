@@ -32,6 +32,33 @@ logger = logging.getLogger(__name__)
 # Bot configuration
 BOT_TOKEN = os.getenv("BOT_TOKEN") or "YOUR_TELEGRAM_BOT_TOKEN_HERE"
 
+# Bot configuration links
+BOT_LINKS = {
+    "updates_channel": "https://t.me/YOUR_CHANNEL",
+    "support_group": "https://t.me/YOUR_GROUP",
+    "developer": "https://t.me/YOUR_USERNAME"
+}
+
+# Bot commands dictionary
+BOT_COMMANDS = {
+    "start": {
+        "command": "start",
+        "description": "🏠 Start the bot and see main menu"
+    },
+    "generate": {
+        "command": "generate", 
+        "description": "🎨 Generate an image from text prompt"
+    },
+    "help": {
+        "command": "help",
+        "description": "❓ Show help and usage guide"
+    },
+    "settings": {
+        "command": "settings",
+        "description": "⚙️ Manage bot settings"
+    }
+}
+
 # Random photos for start command captions
 RANDOM_PHOTOS = [
     "https://i.postimg.cc/RhtZR0sF/New-Project-235-28-ED42-B.png",
@@ -391,11 +418,11 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         welcome_message = WELCOME_MESSAGES["group"]
     
-    # Only first three inline buttons as requested
+    # Keyboard with dynamic links
     keyboard = [
         [
-            InlineKeyboardButton("📢 Updates", url="https://t.me/YOUR_CHANNEL"),
-            InlineKeyboardButton("💬 Support", url="https://t.me/YOUR_GROUP")
+            InlineKeyboardButton("📢 Updates", url=BOT_LINKS["updates_channel"]),
+            InlineKeyboardButton("💬 Support", url=BOT_LINKS["support_group"])
         ],
         [
             InlineKeyboardButton("➕ Add Me To Your Group", url=f"https://t.me/{context.bot.username}?startgroup=true")
@@ -403,22 +430,95 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    try:
-        # Send photo with caption
-        await update.message.reply_photo(
-            photo=random_photo,
-            caption=welcome_message,
-            parse_mode=ParseMode.HTML,
-            reply_markup=reply_markup
-        )
-    except Exception as e:
-        logger.error(f"Failed to send photo, sending text instead: {e}")
-        # Fallback to text message if photo fails
-        await update.message.reply_text(
-            welcome_message,
-            parse_mode=ParseMode.HTML,
-            reply_markup=reply_markup
-        )
+    # Try multiple methods to send photo
+    photo_sent = False
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            # Method 1: Direct URL
+            await update.message.reply_photo(
+                photo=random_photo,
+                caption=welcome_message,
+                parse_mode=ParseMode.HTML,
+                reply_markup=reply_markup,
+                read_timeout=30,
+                write_timeout=30,
+                connect_timeout=30
+            )
+            photo_sent = True
+            logger.info(f"✅ Photo sent successfully on attempt {attempt + 1}")
+            break
+            
+        except Exception as e:
+            logger.warning(f"⚠️ Attempt {attempt + 1} failed: {str(e)}")
+            
+            if attempt < max_retries - 1:
+                # Try downloading and sending as bytes
+                try:
+                    response = requests.get(random_photo, timeout=20)
+                    if response.status_code == 200:
+                        photo_bytes = BytesIO(response.content)
+                        photo_bytes.name = 'image.jpg'
+                        
+                        await update.message.reply_photo(
+                            photo=photo_bytes,
+                            caption=welcome_message,
+                            parse_mode=ParseMode.HTML,
+                            reply_markup=reply_markup,
+                            read_timeout=30,
+                            write_timeout=30
+                        )
+                        photo_sent = True
+                        logger.info(f"✅ Photo sent as bytes on attempt {attempt + 1}")
+                        break
+                except Exception as e2:
+                    logger.warning(f"⚠️ Bytes method failed on attempt {attempt + 1}: {str(e2)}")
+                    
+                # Wait before retry
+                await asyncio.sleep(1)
+    
+    # If all photo attempts failed, try with a different random photo
+    if not photo_sent:
+        try:
+            # Try with a different random photo
+            backup_photo = random.choice(RANDOM_PHOTOS)
+            response = requests.get(backup_photo, timeout=15)
+            if response.status_code == 200:
+                photo_bytes = BytesIO(response.content)
+                photo_bytes.name = 'backup.jpg'
+                
+                await update.message.reply_photo(
+                    photo=photo_bytes,
+                    caption=welcome_message,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup
+                )
+                logger.info("✅ Backup photo sent successfully")
+                photo_sent = True
+        except Exception as e:
+            logger.error(f"❌ Backup photo also failed: {str(e)}")
+    
+    # If still no photo sent, send with a placeholder image URL (reliable)
+    if not photo_sent:
+        try:
+            # Use a reliable placeholder service
+            placeholder_url = "https://via.placeholder.com/512x512/FF69B4/FFFFFF?text=AI+Image+Generator"
+            await update.message.reply_photo(
+                photo=placeholder_url,
+                caption=welcome_message,
+                parse_mode=ParseMode.HTML,
+                reply_markup=reply_markup
+            )
+            logger.info("✅ Placeholder photo sent successfully")
+        except Exception as e:
+            logger.error(f"❌ Even placeholder failed, this shouldn't happen: {str(e)}")
+            # Last resort - send text (but this should never happen)
+            await update.message.reply_text(
+                f"🤖 {welcome_message}",
+                parse_mode=ParseMode.HTML,
+                reply_markup=reply_markup
+            )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /help command."""
@@ -1047,9 +1147,9 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def setup_bot_commands(application: Application) -> None:
     """Setup bot commands menu."""
     commands = [
-        ("start", "🏠 Start the bot and see main menu"),
-        ("generate", "🎨 Generate an image from text prompt"),
-        ("help", "❓ Show help and usage guide"),
+        (BOT_COMMANDS["start"]["command"], BOT_COMMANDS["start"]["description"]),
+        (BOT_COMMANDS["generate"]["command"], BOT_COMMANDS["generate"]["description"]),
+        (BOT_COMMANDS["help"]["command"], BOT_COMMANDS["help"]["description"]),
     ]
     
     await application.bot.set_my_commands(commands)
