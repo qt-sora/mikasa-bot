@@ -1,6 +1,7 @@
 import os
 import logging
 import asyncio
+import random
 from io import BytesIO
 from typing import Optional
 import requests
@@ -30,6 +31,275 @@ logger = logging.getLogger(__name__)
 
 # Bot configuration
 BOT_TOKEN = os.getenv("BOT_TOKEN") or "YOUR_TELEGRAM_BOT_TOKEN_HERE"
+
+# Random photos for start command captions
+RANDOM_PHOTOS = [
+    "https://i.postimg.cc/RhtZR0sF/New-Project-235-28-ED42-B.png",
+    "https://i.postimg.cc/k4z5KSyz/New-Project-235-8-AFAF2-A.png",
+    "https://i.postimg.cc/N0NFGS2g/New-Project-235-09-DD635.png",
+    "https://i.postimg.cc/6pfTgy94/New-Project-235-3-D5-D3-F1.png",
+    "https://i.postimg.cc/dVYL58KK/New-Project-235-4235-F6-E.png",
+    "https://i.postimg.cc/tCPsdBw5/New-Project-235-3459944.png",
+    "https://i.postimg.cc/8k7Jcpbx/New-Project-235-3079612.png",
+    "https://i.postimg.cc/MXk8KbYZ/New-Project-235-9-A5-CAF0.png",
+    "https://i.postimg.cc/qRRrm7Rr/New-Project-235-FE6-E983.png",
+    "https://i.postimg.cc/zfp5Shqp/New-Project-235-5-B71865.png",
+    "https://i.postimg.cc/BvJ4KpfX/New-Project-235-739-D6-D5.png",
+    "https://i.postimg.cc/t439JffK/New-Project-235-B98-C0-D6.png",
+    "https://i.postimg.cc/pLb22x0Q/New-Project-235-28-F28-CA.png",
+    "https://i.postimg.cc/MHgzf8zS/New-Project-235-AB8-F78-F.png",
+    "https://i.postimg.cc/wvfqHmP3/New-Project-235-5952549.png",
+    "https://i.postimg.cc/mrSZXqyY/New-Project-235-D231974.png",
+    "https://i.postimg.cc/vmyHvMf8/New-Project-235-0-BC9-C74.png",
+    "https://i.postimg.cc/J4ynrpR8/New-Project-235-88-BC2-D0.png",
+    "https://i.postimg.cc/HnNk0y4F/New-Project-235-7462142.png",
+    "https://i.postimg.cc/tT2TTf1q/New-Project-235-CE958-B1.png",
+    "https://i.postimg.cc/Xv6XD9Sb/New-Project-235-0-E24-C88.png",
+    "https://i.postimg.cc/RhpNP89s/New-Project-235-FC3-A4-AD.png",
+    "https://i.postimg.cc/x841BwFW/New-Project-235-FFA9646.png",
+    "https://i.postimg.cc/5NC7HwSV/New-Project-235-A06-DD7-A.png",
+    "https://i.postimg.cc/HnPqpdm9/New-Project-235-9-E45-B87.png",
+    "https://i.postimg.cc/1tSPTmRg/New-Project-235-AB394-C0.png",
+    "https://i.postimg.cc/8ct1M2S7/New-Project-235-9-CAE309.png",
+    "https://i.postimg.cc/TYtwDDdt/New-Project-235-2-F658-B0.png",
+    "https://i.postimg.cc/xdwqdVfY/New-Project-235-68-BAF06.png",
+    "https://i.postimg.cc/hPczxn9t/New-Project-235-9-E9-A004.png",
+    "https://i.postimg.cc/jjFPQ1Rk/New-Project-235-A1-E7-CC1.png",
+    "https://i.postimg.cc/TPqJV0pz/New-Project-235-CA65155.png",
+    "https://i.postimg.cc/wBh0WHbb/New-Project-235-89799-CD.png",
+    "https://i.postimg.cc/FKdQ1fzk/New-Project-235-C377613.png",
+    "https://i.postimg.cc/rpKqWnnm/New-Project-235-CFD2548.png",
+    "https://i.postimg.cc/g0kn7HMF/New-Project-235-C4-A32-AC.png",
+    "https://i.postimg.cc/XY6jRkY1/New-Project-235-28-DCBC9.png",
+    "https://i.postimg.cc/SN32J9Nc/New-Project-235-99-D1478.png",
+    "https://i.postimg.cc/8C86n62T/New-Project-235-F1556-B9.png",
+    "https://i.postimg.cc/RCGwVqHT/New-Project-235-5-BBB339.png",
+    "https://i.postimg.cc/pTfYBZyN/New-Project-235-17-D796-A.png",
+    "https://i.postimg.cc/zGgdgJJc/New-Project-235-165-FE5-A.png"
+]
+
+# Welcome messages
+WELCOME_MESSAGES = {
+    "main": "🎨 <b>Welcome to AI Image Generator Bot!</b>\n\n"
+            "I can generate stunning images using Pollinations AI. "
+            "Create anime art, realistic photos, fantasy scenes, and much more!\n\n"
+            "<b>✨ Features:</b>\n"
+            "• Multiple FLUX models available\n"
+            "• High-quality image generation\n"
+            "• Completely free and unlimited\n"
+            "• Fast generation (10-30 seconds)\n\n"
+            "<b>🚀 Quick Start:</b>\n"
+            "Just type your prompt or use /generate command!",
+    
+    "group": "🌸 <b>Hello everyone!</b>\n\n"
+             "I'm your AI Image Generator Bot! In groups, use:\n\n"
+             "<code>mikasa [your prompt here]</code>\n\n"
+             "<b>Example:</b> <code>mikasa cute anime girl with blue hair</code>\n\n"
+             "I'll generate amazing images for your group! 🎨",
+    
+    "private": "🎨 <b>Welcome to your personal AI Art Studio!</b>\n\n"
+               "Here you can generate unlimited images completely free!\n\n"
+               "<b>Just type any description and I'll create it for you!</b>\n\n"
+               "Examples:\n"
+               "• <code>anime girl with purple hair</code>\n"
+               "• <code>cyberpunk city at night</code>\n"
+               "• <code>cute cat in a garden</code>"
+}
+
+# Help messages
+HELP_MESSAGES = {
+    "basic": "🤖 <b>AI Image Generator Bot Help</b>\n\n"
+             "<b>Quick Start:</b>\n"
+             "• Private: Type any prompt\n"
+             "• Groups: <code>mikasa [prompt]</code>\n"
+             "• Commands: <code>/generate [prompt]</code>\n\n"
+             "<b>Example:</b>\n"
+             "<code>anime girl with blue hair</code>\n\n"
+             "🌸 <b>Powered by Pollinations AI</b>",
+    
+    "expanded": "🤖 <b>AI Image Generator Bot - Complete Guide</b>\n\n"
+                "<b>🎨 Basic Usage:</b>\n"
+                "• Type any prompt directly (private chat only)\n"
+                "• Use <code>/generate [prompt]</code> anywhere\n"
+                "• Click buttons for quick actions\n\n"
+                "<b>🌸 Group Usage:</b>\n"
+                "• Type <code>mikasa [your prompt]</code> in groups\n"
+                "• Example: <code>mikasa cute anime girl with blue hair</code>\n"
+                "• Bot will reply to your message with generated image\n\n"
+                "<b>💡 Advanced Prompt Tips:</b>\n"
+                "• Be descriptive: 'anime girl with blue hair and green eyes'\n"
+                "• Add art styles: 'realistic', 'cartoon', 'oil painting', 'watercolor'\n"
+                "• Specify details: colors, lighting, mood, background\n"
+                "• Use quality terms: 'detailed', 'high quality', '4k', 'masterpiece'\n"
+                "• Include camera settings: 'close-up', 'wide shot', 'portrait'\n\n"
+                "<b>🎯 Style Keywords:</b>\n"
+                "• <code>anime, manga, kawaii</code> - Japanese animation style\n"
+                "• <code>realistic, photorealistic</code> - Real photo look\n"
+                "• <code>cyberpunk, futuristic, sci-fi</code> - Technology themes\n"
+                "• <code>fantasy, magical, ethereal</code> - Fantasy elements\n"
+                "• <code>vintage, retro, classic</code> - Old-style aesthetics\n\n"
+                "<b>⚡ Available Commands:</b>\n"
+                "• <code>/start</code> - Main menu and bot info\n"
+                "• <code>/generate</code> - Full generation interface\n"
+                "• <code>/help</code> - This help guide\n\n"
+                "<b>🛠️ Features:</b>\n"
+                "• 4 AI models (FLUX, Turbo, Realism, Anime)\n"
+                "• Multiple image sizes (512x512 to 1024x1024)\n"
+                "• Style presets for easy enhancement\n"
+                "• Random prompt generator\n"
+                "• Completely free and unlimited\n\n"
+                "<b>🌟 Example Prompts:</b>\n"
+                "• <code>cyberpunk city at night, neon lights, rain</code>\n"
+                "• <code>cute cat sitting in a garden, watercolor style</code>\n"
+                "• <code>fantasy dragon flying over mountains, detailed</code>\n"
+                "• <code>beautiful anime girl, long purple hair, green eyes</code>\n"
+                "• <code>futuristic robot, metallic, glowing blue eyes</code>\n\n"
+                "<b>🔧 Powered by Pollinations AI</b>\n"
+                "Fast, reliable, and completely free image generation!"
+}
+
+# Status messages
+STATUS_MESSAGES = {
+    "generating": [
+        "🌺", "🎨", "✨", "🌸", "🎭", "🖼️", "🌟", "💫", "🎪", "🎯"
+    ],
+    "processing": [
+        "🔮 Creating magic...",
+        "🎨 Painting your vision...",
+        "✨ Generating artwork...",
+        "🌟 Crafting your image...",
+        "🖼️ Building masterpiece...",
+        "🎭 Bringing art to life...",
+        "💫 Weaving pixels...",
+        "🌺 Blooming creation..."
+    ]
+}
+
+# Error messages
+ERROR_MESSAGES = {
+    "generation_failed": "❌ <b>Generation failed</b>\n\n"
+                        "The image generation service is currently unavailable. This might be due to:\n"
+                        "• Service maintenance\n"
+                        "• Network issues\n"
+                        "• Server overload\n\n"
+                        "<b>Solutions:</b>\n"
+                        "• Try again in a few minutes\n"
+                        "• Try with a different prompt\n"
+                        "• Use /generate to try different settings",
+    
+    "general_error": "❌ <b>An error occurred</b>\n\n"
+                    "Please try again later or contact support.",
+    
+    "no_prompt": "🌸 <b>Hey there!</b>\n\n"
+                "I see you called me with 'mikasa'! To generate an image, use:\n\n"
+                "<code>mikasa [your prompt here]</code>\n\n"
+                "<b>Example:</b>\n"
+                "<code>mikasa cute anime girl with blue hair</code>",
+    
+    "network_error": "🌐 <b>Network Error</b>\n\n"
+                    "Cannot connect to the image generation service right now.\n"
+                    "Please try again in a few moments.",
+    
+    "timeout_error": "⏰ <b>Request Timeout</b>\n\n"
+                    "The generation took too long. This usually happens when:\n"
+                    "• The service is overloaded\n"
+                    "• Complex prompts need more time\n\n"
+                    "Please try again or simplify your prompt."
+}
+
+# Success messages
+SUCCESS_MESSAGES = {
+    "image_generated": "🎨 <b>Generated Image</b>\n\n<b>Prompt:</b> {prompt}",
+    "image_for_user": "🎨 <b>Generated for</b> @{username}\n\n<b>Prompt:</b> {prompt}",
+    "model_selected": "✅ <b>Model Selected</b>\n\n<b>Service:</b> {service}\n<b>Model:</b> {model}\n<b>Description:</b> {description}\n\nYou can now generate images with this model!",
+    "size_updated": "✅ <b>Size updated to {width}x{height}</b>\n\nYou can now generate images with the new size!",
+    "style_applied": "🎨 <b>Style Applied: {style}</b>\n\n<b>Style modifier:</b> {modifier}\n\nThis will be added to your prompts automatically!",
+    "settings_reset": "🔄 <b>Settings Reset</b>\n\nAll settings restored to default values:\n• Service: Pollinations AI\n• Model: FLUX\n• Size: 512x512\n• Style: None\n\nReady to generate!"
+}
+
+# Menu messages
+MENU_MESSAGES = {
+    "generate_menu": "🎨 <b>AI Image Generator</b>\n\n"
+                    "Choose an option or provide a prompt:\n\n"
+                    "<b>Usage:</b> <code>/generate your prompt here</code>\n\n"
+                    "<b>Example:</b> <code>/generate anime girl with blue hair</code>",
+    
+    "model_selection": "🤖 <b>AI Model Selection</b>\n\n"
+                      "<b>Current Service:</b> {service}\n"
+                      "<b>Current Model:</b> {model}\n\n"
+                      "Choose your preferred AI model:",
+    
+    "settings_menu": "⚙️ <b>Settings Menu</b>\n\n"
+                    "<b>Service:</b> {service}\n"
+                    "<b>Model:</b> {model}\n"
+                    "<b>Size:</b> {width}x{height}\n\n"
+                    "Customize your generation settings:",
+    
+    "style_presets": "🌟 <b>Style Presets</b>\n\n"
+                    "<b>Current Style:</b> {style}\n\n"
+                    "Choose a style to automatically enhance your prompts:",
+    
+    "size_options": "📊 <b>Image Size Options</b>\n\n"
+                   "<b>Current Size:</b> {size}\n\n"
+                   "Choose your preferred image dimensions:",
+    
+    "help_menu": "❓ <b>Help & Guide</b>\n\n"
+                "<b>🎨 How to Generate:</b>\n"
+                "• Type any text description\n"
+                "• Use /generate [prompt]\n"
+                "• Click 'Generate Sample'\n\n"
+                "<b>💡 Prompt Tips:</b>\n"
+                "• Be descriptive: 'anime girl with blue hair'\n"
+                "• Add style: 'realistic', 'cartoon', 'oil painting'\n"
+                "• Specify details: colors, lighting, mood\n"
+                "• Use quality terms: 'detailed', 'high quality', '4k'\n\n"
+                "<b>⚡ Commands:</b>\n"
+                "• /generate - Create image\n"
+                "• /help - Show this guide\n"
+                "• /start - Return to main menu\n\n"
+                "<b>🌟 Example Prompts:</b>\n"
+                "• 'cyberpunk city at night, neon lights'\n"
+                "• 'cute cat in a garden, watercolor style'\n"
+                "• 'fantasy dragon, detailed digital art'"
+}
+
+# Random prompts for sample generation
+RANDOM_PROMPTS = [
+    "futuristic cyberpunk cityscape at night with neon lights",
+    "magical forest with glowing mushrooms and fairy lights",
+    "steampunk airship floating above clouds",
+    "cute anime cat girl with colorful hair",
+    "epic dragon flying over medieval castle",
+    "abstract cosmic nebula with stars and galaxies",
+    "vintage car in rain-soaked city street",
+    "peaceful mountain lake at sunset",
+    "beautiful anime girl with long flowing hair",
+    "cyberpunk samurai in neon-lit alley",
+    "fantasy castle on floating island",
+    "cute robot companion with glowing eyes",
+    "magical portal in enchanted forest",
+    "space warrior with energy sword",
+    "crystal cave with rainbow reflections",
+    "steampunk laboratory with brass machinery",
+    "anime schoolgirl in cherry blossom garden",
+    "futuristic city with flying cars",
+    "mystical phoenix rising from flames",
+    "underwater palace with mermaids"
+]
+
+# Style presets dictionary
+STYLE_PRESETS = {
+    "anime": "anime style, detailed anime art, vibrant colors",
+    "realistic": "photorealistic, high detail, professional photography",
+    "fantasy": "fantasy art, magical, ethereal, mystical",
+    "cyberpunk": "cyberpunk style, neon lights, futuristic, dark atmosphere",
+    "cartoon": "cartoon style, colorful, playful, animated",
+    "oil_painting": "oil painting style, classical art, brush strokes",
+    "watercolor": "watercolor painting, soft colors, artistic",
+    "digital_art": "digital art, concept art, detailed illustration",
+    "vintage": "vintage style, retro, classic, nostalgic",
+    "minimalist": "minimalist style, clean, simple, modern"
+}
 
 # HTTP Server for uptime monitoring
 class DummyHandler(BaseHTTPRequestHandler):
@@ -111,19 +381,15 @@ DEFAULT_PARAMS = {
 }
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle the /start command."""
-    welcome_message = (
-        "🎨 <b>Welcome to AI Image Generator Bot!</b>\n\n"
-        "I can generate stunning images using Pollinations AI. "
-        "Create anime art, realistic photos, fantasy scenes, and much more!\n\n"
-        "<b>✨ Features:</b>\n"
-        "• Multiple FLUX models available\n"
-        "• High-quality image generation\n"
-        "• Completely free and unlimited\n"
-        "• Fast generation (10-30 seconds)\n\n"
-        "<b>🚀 Quick Start:</b>\n"
-        "Just type your prompt or use /generate command!"
-    )
+    """Handle the /start command with random photo."""
+    # Select random photo
+    random_photo = random.choice(RANDOM_PHOTOS)
+    
+    # Determine message based on chat type
+    if update.effective_chat.type == 'private':
+        welcome_message = WELCOME_MESSAGES["private"]
+    else:
+        welcome_message = WELCOME_MESSAGES["group"]
     
     # Only first three inline buttons as requested
     keyboard = [
@@ -137,25 +403,25 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await update.message.reply_text(
-        welcome_message,
-        parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup
-    )
+    try:
+        # Send photo with caption
+        await update.message.reply_photo(
+            photo=random_photo,
+            caption=welcome_message,
+            parse_mode=ParseMode.HTML,
+            reply_markup=reply_markup
+        )
+    except Exception as e:
+        logger.error(f"Failed to send photo, sending text instead: {e}")
+        # Fallback to text message if photo fails
+        await update.message.reply_text(
+            welcome_message,
+            parse_mode=ParseMode.HTML,
+            reply_markup=reply_markup
+        )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /help command."""
-    help_text = (
-        "🤖 <b>AI Image Generator Bot Help</b>\n\n"
-        "<b>Quick Start:</b>\n"
-        "• Private: Type any prompt\n"
-        "• Groups: <code>mikasa [prompt]</code>\n"
-        "• Commands: <code>/generate [prompt]</code>\n\n"
-        "<b>Example:</b>\n"
-        "<code>anime girl with blue hair</code>\n\n"
-        "🌸 <b>Powered by Pollinations AI</b>"
-    )
-    
     keyboard = [
         [
             InlineKeyboardButton("📖 Expand Guide", callback_data="expand_guide")
@@ -163,19 +429,16 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await update.message.reply_text(help_text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
+    await update.message.reply_text(
+        HELP_MESSAGES["basic"], 
+        parse_mode=ParseMode.HTML, 
+        reply_markup=reply_markup
+    )
 
 async def generate_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /generate command with all functionality."""
     if not context.args:
         # Show generate menu with options
-        generate_menu_text = (
-            "🎨 <b>AI Image Generator</b>\n\n"
-            "Choose an option or provide a prompt:\n\n"
-            "<b>Usage:</b> <code>/generate your prompt here</code>\n\n"
-            "<b>Example:</b> <code>/generate anime girl with blue hair</code>"
-        )
-        
         keyboard = [
             [
                 InlineKeyboardButton("🤖 Select Model", callback_data="select_model"),
@@ -197,7 +460,7 @@ async def generate_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            generate_menu_text,
+            MENU_MESSAGES["generate_menu"],
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -229,15 +492,7 @@ async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TY
     parts = message_text.split(None, 1)  # Split on whitespace, max 1 split
     
     if len(parts) == 1:
-        # Only "mikasa" was said, no prompt - remove random button
-        help_message = (
-            "🌸 <b>Hey there!</b>\n\n"
-            "I see you called me with 'mikasa'! To generate an image, use:\n\n"
-            "<code>mikasa [your prompt here]</code>\n\n"
-            "<b>Example:</b>\n"
-            "<code>mikasa cute anime girl with blue hair</code>"
-        )
-        
+        # Only "mikasa" was said, no prompt
         keyboard = [
             [
                 InlineKeyboardButton("🗑️ Delete", callback_data="delete_message")
@@ -246,7 +501,7 @@ async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            help_message,
+            ERROR_MESSAGES["no_prompt"],
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -268,8 +523,9 @@ async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAUL
     if style_suffix:
         prompt = f"{prompt}, {style_suffix}"
     
-    # Send simple emoji status message as reply
-    status_message = await update.message.reply_text("🌺")
+    # Send random status emoji
+    status_emoji = random.choice(STATUS_MESSAGES["generating"])
+    status_message = await update.message.reply_text(status_emoji)
     
     try:
         image_bytes = await generate_image_pollinations(prompt, user_settings)
@@ -283,31 +539,34 @@ async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAUL
             if context.user_data.get('style_suffix'):
                 clean_prompt = prompt.replace(', ' + context.user_data.get('style_suffix'), '')
             
+            username = update.effective_user.username or update.effective_user.first_name
+            caption = SUCCESS_MESSAGES["image_for_user"].format(
+                username=username,
+                prompt=clean_prompt
+            )
+            
             await context.bot.edit_message_media(
                 chat_id=update.effective_chat.id,
                 message_id=status_message.message_id,
                 media=InputMediaPhoto(
                     media=image_stream,
-                    caption=f"🎨 <b>Generated for</b> @{update.effective_user.username or update.effective_user.first_name}\n\n<b>Prompt:</b> {clean_prompt}",
+                    caption=caption,
                     parse_mode=ParseMode.HTML
                 )
             )
             
         else:
             # Generation failed - edit the emoji message with error
-            error_message = (
-                "❌ <b>Generation failed</b>\n\n"
-                "Please try again in a few minutes."
+            await status_message.edit_text(
+                ERROR_MESSAGES["generation_failed"], 
+                parse_mode=ParseMode.HTML
             )
-            
-            await status_message.edit_text(error_message, parse_mode=ParseMode.HTML)
             
     except Exception as e:
         logger.error(f"Error generating image: {str(e)}")
         try:
             await status_message.edit_text(
-                "❌ <b>An error occurred</b>\n\n"
-                "Please try again later.",
+                ERROR_MESSAGES["general_error"],
                 parse_mode=ParseMode.HTML
             )
         except Exception:
@@ -316,7 +575,6 @@ async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAUL
 async def generate_image_pollinations(prompt: str, settings: dict) -> Optional[bytes]:
     """Generate image using Pollinations AI."""
     try:
-        import random
         seed = settings.get('seed') or random.randint(1, 1000000)
         model = settings.get('model', 'flux')
         model_param = API_SERVICE["models"].get(model, {}).get('model_param', 'flux')
@@ -367,20 +625,21 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
         chat_id = None
         send_method = update.message.reply_text
     
-    # Send simple emoji status message
+    # Send random status emoji or message
+    status_text = random.choice(STATUS_MESSAGES["generating"])
     if chat_id:
         status_message = await send_method(
             chat_id=chat_id,
-            text="🌺"
+            text=status_text
         )
     else:
-        status_message = await send_method("🌺")
+        status_message = await send_method(status_text)
     
     try:
         image_bytes = await generate_image_pollinations(prompt, user_settings)
         
         if image_bytes:
-            # Edit the emoji message with the generated image
+            # Edit the status message with the generated image
             image_stream = BytesIO(image_bytes)
             
             # Get clean prompt (remove style suffix for display)
@@ -388,45 +647,36 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
             if context.user_data.get('style_suffix'):
                 clean_prompt = prompt.replace(', ' + context.user_data.get('style_suffix'), '')
             
+            caption = SUCCESS_MESSAGES["image_generated"].format(prompt=clean_prompt)
+            
             await context.bot.edit_message_media(
                 chat_id=update.effective_chat.id,
                 message_id=status_message.message_id,
                 media=InputMediaPhoto(
                     media=image_stream,
-                    caption=f"🎨 <b>Generated Image</b>\n\n<b>Prompt:</b> {clean_prompt}",
+                    caption=caption,
                     parse_mode=ParseMode.HTML
                 )
             )
             
         else:
-            # Generation failed - edit the emoji message with error
-            error_message = (
-                "❌ <b>Generation failed</b>\n\n"
-                "The image generation service is currently unavailable. This might be due to:\n"
-                "• Service maintenance\n"
-                "• Network issues\n"
-                "• Server overload\n\n"
-                "<b>Solutions:</b>\n"
-                "• Try again in a few minutes\n"
-                "• Try with a different prompt\n"
-                "• Use /generate to try different settings"
+            # Generation failed - edit the status message with error
+            await status_message.edit_text(
+                ERROR_MESSAGES["generation_failed"], 
+                parse_mode=ParseMode.HTML
             )
-            
-            await status_message.edit_text(error_message, parse_mode=ParseMode.HTML)
             
     except Exception as e:
         logger.error(f"Error generating image: {str(e)}")
         try:
             await status_message.edit_text(
-                "❌ <b>An error occurred</b>\n\n"
-                "Please try again later or contact support.",
+                ERROR_MESSAGES["general_error"],
                 parse_mode=ParseMode.HTML
             )
         except Exception:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text="❌ <b>An error occurred</b>\n\n"
-                     "Please try again later or contact support.",
+                text=ERROR_MESSAGES["general_error"],
                 parse_mode=ParseMode.HTML
             )
 
@@ -439,7 +689,8 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     
     if data == "sample":
-        await generate_image(update, context, "beautiful anime girl with long blue hair, detailed art")
+        sample_prompt = random.choice(RANDOM_PROMPTS)
+        await generate_image(update, context, sample_prompt)
     
     elif data == "select_model":
         await model_selection_menu(update, context)
@@ -454,18 +705,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         await style_presets_menu(update, context)
     
     elif data == "random_prompt":
-        import random
-        random_prompts = [
-            "futuristic cyberpunk cityscape at night with neon lights",
-            "magical forest with glowing mushrooms and fairy lights",
-            "steampunk airship floating above clouds",
-            "cute anime cat girl with colorful hair",
-            "epic dragon flying over medieval castle",
-            "abstract cosmic nebula with stars and galaxies",
-            "vintage car in rain-soaked city street",
-            "peaceful mountain lake at sunset"
-        ]
-        random_prompt = random.choice(random_prompts)
+        random_prompt = random.choice(RANDOM_PROMPTS)
         await generate_image(update, context, random_prompt)
     
     elif data == "size_options":
@@ -480,12 +720,14 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         model_info = API_SERVICE["models"].get(model, {})
         model_name = model_info.get("name", model.upper())
         
+        success_text = SUCCESS_MESSAGES["model_selected"].format(
+            service=API_SERVICE['name'],
+            model=model_name,
+            description=model_info.get('description', 'No description available')
+        )
+        
         await query.edit_message_text(
-            f"✅ <b>Model Selected</b>\n\n"
-            f"<b>Service:</b> {API_SERVICE['name']}\n"
-            f"<b>Model:</b> {model_name}\n"
-            f"<b>Description:</b> {model_info.get('description', 'No description available')}\n\n"
-            "You can now generate images with this model!",
+            success_text,
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup([
                 [
@@ -509,9 +751,13 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         user_settings['height'] = height
         context.user_data['settings'] = user_settings
         
+        success_text = SUCCESS_MESSAGES["size_updated"].format(
+            width=width,
+            height=height
+        )
+        
         await query.edit_message_text(
-            f"✅ <b>Size updated to {width}x{height}</b>\n\n"
-            "You can now generate images with the new size!",
+            success_text,
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup([
                 [
@@ -524,21 +770,17 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     
     elif data.startswith("style_"):
         style = data.split("_", 1)[1]
-        style_prompts = {
-            "anime": "anime style, detailed anime art, vibrant colors",
-            "realistic": "photorealistic, high detail, professional photography",
-            "fantasy": "fantasy art, magical, ethereal, mystical",
-            "cyberpunk": "cyberpunk style, neon lights, futuristic, dark atmosphere",
-            "cartoon": "cartoon style, colorful, playful, animated",
-            "oil_painting": "oil painting style, classical art, brush strokes"
-        }
         
-        if style in style_prompts:
-            context.user_data['style_suffix'] = style_prompts[style]
+        if style in STYLE_PRESETS:
+            context.user_data['style_suffix'] = STYLE_PRESETS[style]
+            
+            success_text = SUCCESS_MESSAGES["style_applied"].format(
+                style=style.replace('_', ' ').title(),
+                modifier=STYLE_PRESETS[style]
+            )
+            
             await query.edit_message_text(
-                f"🎨 <b>Style Applied: {style.replace('_', ' ').title()}</b>\n\n"
-                f"<b>Style modifier:</b> {style_prompts[style]}\n\n"
-                "This will be added to your prompts automatically!",
+                success_text,
                 parse_mode=ParseMode.HTML,
                 reply_markup=InlineKeyboardMarkup([
                     [
@@ -555,13 +797,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         context.user_data.pop('style_suffix', None)
         
         await query.edit_message_text(
-            "🔄 <b>Settings Reset</b>\n\n"
-            "All settings restored to default values:\n"
-            "• Service: Pollinations AI\n"
-            "• Model: FLUX\n"
-            "• Size: 512x512\n"
-            "• Style: None\n\n"
-            "Ready to generate!",
+            SUCCESS_MESSAGES["settings_reset"],
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup([
                 [
@@ -574,13 +810,6 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     
     elif data == "back_to_generate":
         # Return to generate menu
-        generate_menu_text = (
-            "🎨 <b>AI Image Generator</b>\n\n"
-            "Choose an option or provide a prompt:\n\n"
-            "<b>Usage:</b> <code>/generate your prompt here</code>\n\n"
-            "<b>Example:</b> <code>/generate anime girl with blue hair</code>"
-        )
-        
         keyboard = [
             [
                 InlineKeyboardButton("🤖 Select Model", callback_data="select_model"),
@@ -602,54 +831,12 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
-            generate_menu_text,
+            MENU_MESSAGES["generate_menu"],
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
     
     elif data == "expand_guide":
-        expanded_help_text = (
-            "🤖 <b>AI Image Generator Bot - Complete Guide</b>\n\n"
-            "<b>🎨 Basic Usage:</b>\n"
-            "• Type any prompt directly (private chat only)\n"
-            "• Use <code>/generate [prompt]</code> anywhere\n"
-            "• Click buttons for quick actions\n\n"
-            "<b>🌸 Group Usage:</b>\n"
-            "• Type <code>mikasa [your prompt]</code> in groups\n"
-            "• Example: <code>mikasa cute anime girl with blue hair</code>\n"
-            "• Bot will reply to your message with generated image\n\n"
-            "<b>💡 Advanced Prompt Tips:</b>\n"
-            "• Be descriptive: 'anime girl with blue hair and green eyes'\n"
-            "• Add art styles: 'realistic', 'cartoon', 'oil painting', 'watercolor'\n"
-            "• Specify details: colors, lighting, mood, background\n"
-            "• Use quality terms: 'detailed', 'high quality', '4k', 'masterpiece'\n"
-            "• Include camera settings: 'close-up', 'wide shot', 'portrait'\n\n"
-            "<b>🎯 Style Keywords:</b>\n"
-            "• <code>anime, manga, kawaii</code> - Japanese animation style\n"
-            "• <code>realistic, photorealistic</code> - Real photo look\n"
-            "• <code>cyberpunk, futuristic, sci-fi</code> - Technology themes\n"
-            "• <code>fantasy, magical, ethereal</code> - Fantasy elements\n"
-            "• <code>vintage, retro, classic</code> - Old-style aesthetics\n\n"
-            "<b>⚡ Available Commands:</b>\n"
-            "• <code>/start</code> - Main menu and bot info\n"
-            "• <code>/generate</code> - Full generation interface\n"
-            "• <code>/help</code> - This help guide\n\n"
-            "<b>🛠️ Features:</b>\n"
-            "• 4 AI models (FLUX, Turbo, Realism, Anime)\n"
-            "• Multiple image sizes (512x512 to 1024x1024)\n"
-            "• Style presets for easy enhancement\n"
-            "• Random prompt generator\n"
-            "• Completely free and unlimited\n\n"
-            "<b>🌟 Example Prompts:</b>\n"
-            "• <code>cyberpunk city at night, neon lights, rain</code>\n"
-            "• <code>cute cat sitting in a garden, watercolor style</code>\n"
-            "• <code>fantasy dragon flying over mountains, detailed</code>\n"
-            "• <code>beautiful anime girl, long purple hair, green eyes</code>\n"
-            "• <code>futuristic robot, metallic, glowing blue eyes</code>\n\n"
-            "<b>🔧 Powered by Pollinations AI</b>\n"
-            "Fast, reliable, and completely free image generation!"
-        )
-        
         keyboard = [
             [
                 InlineKeyboardButton("📄 Minimize Guide", callback_data="minimize_guide")
@@ -658,23 +845,12 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
-            expanded_help_text,
+            HELP_MESSAGES["expanded"],
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
     
     elif data == "minimize_guide":
-        minimized_help_text = (
-            "🤖 <b>AI Image Generator Bot Help</b>\n\n"
-            "<b>Quick Start:</b>\n"
-            "• Private: Type any prompt\n"
-            "• Groups: <code>mikasa [prompt]</code>\n"
-            "• Commands: <code>/generate [prompt]</code>\n\n"
-            "<b>Example:</b>\n"
-            "<code>anime girl with blue hair</code>\n\n"
-            "🌸 <b>Powered by Pollinations AI</b>"
-        )
-        
         keyboard = [
             [
                 InlineKeyboardButton("📖 Expand Guide", callback_data="expand_guide")
@@ -683,7 +859,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
-            minimized_help_text,
+            HELP_MESSAGES["basic"],
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -698,11 +874,9 @@ async def model_selection_menu(update: Update, context: ContextTypes.DEFAULT_TYP
     """Show AI model selection menu."""
     current_model = context.user_data.get('model', 'flux')
     
-    model_text = (
-        "🤖 <b>AI Model Selection</b>\n\n"
-        f"<b>Current Service:</b> {API_SERVICE['name']}\n"
-        f"<b>Current Model:</b> {current_model.upper()}\n\n"
-        "Choose your preferred AI model:"
+    model_text = MENU_MESSAGES["model_selection"].format(
+        service=API_SERVICE['name'],
+        model=current_model.upper()
     )
     
     keyboard = []
@@ -737,12 +911,11 @@ async def settings_menu_callback(update: Update, context: ContextTypes.DEFAULT_T
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_model = context.user_data.get('model', 'flux')
     
-    settings_text = (
-        "⚙️ <b>Settings Menu</b>\n\n"
-        f"<b>Service:</b> {API_SERVICE['name']}\n"
-        f"<b>Model:</b> {current_model.upper()}\n"
-        f"<b>Size:</b> {user_settings['width']}x{user_settings['height']}\n\n"
-        "Customize your generation settings:"
+    settings_text = MENU_MESSAGES["settings_menu"].format(
+        service=API_SERVICE['name'],
+        model=current_model.upper(),
+        width=user_settings['width'],
+        height=user_settings['height']
     )
     
     keyboard = [
@@ -770,27 +943,6 @@ async def settings_menu_callback(update: Update, context: ContextTypes.DEFAULT_T
 
 async def help_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle help menu callback."""
-    help_text = (
-        "❓ <b>Help & Guide</b>\n\n"
-        "<b>🎨 How to Generate:</b>\n"
-        "• Type any text description\n"
-        "• Use /generate [prompt]\n"
-        "• Click 'Generate Sample'\n\n"
-        "<b>💡 Prompt Tips:</b>\n"
-        "• Be descriptive: 'anime girl with blue hair'\n"
-        "• Add style: 'realistic', 'cartoon', 'oil painting'\n"
-        "• Specify details: colors, lighting, mood\n"
-        "• Use quality terms: 'detailed', 'high quality', '4k'\n\n"
-        "<b>⚡ Commands:</b>\n"
-        "• /generate - Create image\n"
-        "• /help - Show this guide\n"
-        "• /start - Return to main menu\n\n"
-        "<b>🌟 Example Prompts:</b>\n"
-        "• 'cyberpunk city at night, neon lights'\n"
-        "• 'cute cat in a garden, watercolor style'\n"
-        "• 'fantasy dragon, detailed digital art'"
-    )
-    
     keyboard = [
         [
             InlineKeyboardButton("🎨 Try Sample", callback_data="sample"),
@@ -801,7 +953,7 @@ async def help_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.callback_query.edit_message_text(
-        help_text,
+        MENU_MESSAGES["help_menu"],
         parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
@@ -810,11 +962,7 @@ async def style_presets_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
     """Show style presets menu."""
     current_style = context.user_data.get('style_suffix', 'None')
     
-    style_text = (
-        "🌟 <b>Style Presets</b>\n\n"
-        f"<b>Current Style:</b> {current_style}\n\n"
-        "Choose a style to automatically enhance your prompts:"
-    )
+    style_text = MENU_MESSAGES["style_presets"].format(style=current_style)
     
     keyboard = [
         [
@@ -828,6 +976,14 @@ async def style_presets_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
         [
             InlineKeyboardButton("🎨 Cartoon", callback_data="style_cartoon"),
             InlineKeyboardButton("🖼️ Oil Painting", callback_data="style_oil_painting")
+        ],
+        [
+            InlineKeyboardButton("🌊 Watercolor", callback_data="style_watercolor"),
+            InlineKeyboardButton("💻 Digital Art", callback_data="style_digital_art")
+        ],
+        [
+            InlineKeyboardButton("📼 Vintage", callback_data="style_vintage"),
+            InlineKeyboardButton("🔵 Minimalist", callback_data="style_minimalist")
         ],
         [
             InlineKeyboardButton("🔄 Clear Style", callback_data="reset_settings"),
@@ -847,11 +1003,7 @@ async def size_options_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_size = f"{user_settings['width']}x{user_settings['height']}"
     
-    size_text = (
-        "📊 <b>Image Size Options</b>\n\n"
-        f"<b>Current Size:</b> {current_size}\n\n"
-        "Choose your preferred image dimensions:"
-    )
+    size_text = MENU_MESSAGES["size_options"].format(size=current_size)
     
     keyboard = [
         [
@@ -886,7 +1038,8 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         if update and update.effective_chat:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text="❌ An unexpected error occurred. Please try again."
+                text=ERROR_MESSAGES["general_error"],
+                parse_mode=ParseMode.HTML
             )
     except Exception as e:
         logger.error(f"Failed to send error message to user: {str(e)}")
