@@ -210,9 +210,6 @@ ERROR_MESSAGES = {
                         "• Try with a different prompt\n"
                         "• Use /generate to try different settings",
     
-    "general_error": "❌ <b>An error occurred</b>\n\n"
-                    "Please try again later or contact support.",
-    
     "no_prompt": "🌸 <b>Hey there!</b>\n\n"
                 "I see you called me with 'mikasa'! To generate an image, use:\n\n"
                 "<code>mikasa [your prompt here]</code>\n\n"
@@ -580,11 +577,15 @@ async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAUL
         logger.error(f"Error generating image: {str(e)}")
         try:
             await status_message.edit_text(
-                ERROR_MESSAGES["general_error"],
+                ERROR_MESSAGES["generation_failed"],
                 parse_mode=ParseMode.HTML
             )
         except Exception:
-            pass
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=ERROR_MESSAGES["generation_failed"],
+                parse_mode=ParseMode.HTML
+            )
 
 async def generate_image_pollinations(prompt: str, settings: dict) -> Optional[bytes]:
     """Generate image using Pollinations AI."""
@@ -684,15 +685,11 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
         logger.error(f"Error generating image: {str(e)}")
         try:
             await status_message.edit_text(
-                ERROR_MESSAGES["general_error"],
+                ERROR_MESSAGES["generation_failed"],
                 parse_mode=ParseMode.HTML
             )
         except Exception:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=ERROR_MESSAGES["general_error"],
-                parse_mode=ParseMode.HTML
-            )
+            pass
 
 async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle callback queries from inline keyboards."""
@@ -1048,15 +1045,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """Handle errors."""
     logger.error(f"Exception while handling an update: {context.error}")
     
-    try:
-        if update and update.effective_chat:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=ERROR_MESSAGES["general_error"],
-                parse_mode=ParseMode.HTML
-            )
-    except Exception as e:
-        logger.error(f"Failed to send error message to user: {str(e)}")
+    # Don't send the generic error message to users
 
 async def setup_bot_commands(application: Application) -> None:
     """Setup bot commands menu."""
