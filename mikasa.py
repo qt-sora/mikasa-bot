@@ -34,24 +34,24 @@ BOT_TOKEN = os.getenv("BOT_TOKEN") or "YOUR_TELEGRAM_BOT_TOKEN_HERE"
 
 # Bot configuration links
 BOT_LINKS = {
-    "updates_channel": "https://t.me/YOUR_CHANNEL",
-    "support_group": "https://t.me/YOUR_GROUP",
-    "developer": "https://t.me/YOUR_USERNAME"
+    "updates_channel": "https://t.me/WorkGlows",
+    "support_group": "https://t.me/SoulMeetsHQ",
+    "developer": "https://t.me/asad_ofc"
 }
 
 # Bot commands dictionary
 BOT_COMMANDS = {
     "start": {
         "command": "start",
-        "description": "🏠 Start the bot"
+        "description": "🌺 Meet Mikasa"
     },
     "generate": {
         "command": "generate", 
-        "description": "🎨 Generate an image"
+        "description": "🎨 Image Generation"
     },
     "help": {
         "command": "help",
-        "description": "❓ Show help"
+        "description": "📚 Show Help"
     }
 }
 
@@ -184,8 +184,9 @@ HELP_MESSAGES = {
 # Status messages
 STATUS_MESSAGES = {
     "generating": [
-        "🌺", "🎨", "✨", "🌸", "🎭", "🖼️", "🌟", "💫", "🎪", "🎯"
-    ],
+    "⛅", "🌤️", "❣️", "💖", "🌸", "💝", "💘", "💗", "💓", "💞", 
+    "❤️‍🔥", "🌹", "🌺", "🌼", "🌷", "💐", "🕊️", "🐱", "🐈", "💌"
+	],
     "processing": [
         "🔮 Creating magic...",
         "🎨 Painting your vision...",
@@ -414,11 +415,11 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     # Keyboard with dynamic links
     keyboard = [
         [
-            InlineKeyboardButton("📢 Updates", url=BOT_LINKS["updates_channel"]),
-            InlineKeyboardButton("💬 Support", url=BOT_LINKS["support_group"])
+            InlineKeyboardButton("Updates", url=BOT_LINKS["updates_channel"]),
+            InlineKeyboardButton("Support", url=BOT_LINKS["support_group"])
         ],
         [
-            InlineKeyboardButton("➕ Add Me To Your Group", url=f"https://t.me/{context.bot.username}?startgroup=true")
+            InlineKeyboardButton("Add Me To Your Group", url=f"https://t.me/{context.bot.username}?startgroup=true")
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -850,7 +851,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     elif data == "expand_guide":
         keyboard = [
             [
-                InlineKeyboardButton("📄 Minimize Guide", callback_data="minimize_guide")
+                InlineKeyboardButton("📚 Minimize Guide", callback_data="minimize_guide")
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
