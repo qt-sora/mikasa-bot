@@ -103,82 +103,103 @@ RANDOM_PHOTOS = [
 
 # Welcome messages
 WELCOME_MESSAGES = {
-    "main": "🎨 <b>Welcome to AI Image Generator Bot!</b>\n\n"
-            "I can generate stunning images using Pollinations AI. "
-            "Create anime art, realistic photos, fantasy scenes, and much more!\n\n"
-            "<b>✨ Features:</b>\n"
-            "• Multiple FLUX models available\n"
-            "• High-quality image generation\n"
-            "• Completely free and unlimited\n"
-            "• Fast generation (10-30 seconds)\n\n"
-            "<b>🚀 Quick Start:</b>\n"
-            "Just type your prompt or use /generate command!",
-    
-    "group": "🌸 <b>Hello everyone!</b>\n\n"
-             "I'm your AI Image Generator Bot! In groups, use:\n\n"
-             "<code>mikasa [your prompt here]</code>\n\n"
-             "<b>Example:</b> <code>mikasa cute anime girl with blue hair</code>\n\n"
-             "I'll generate amazing images for your group! 🎨",
-    
-    "private": "🎨 <b>Welcome to your personal AI Art Studio!</b>\n\n"
-               "Here you can generate unlimited images completely free!\n\n"
-               "<b>Just type any description and I'll create it for you!</b>\n\n"
-               "Examples:\n"
-               "• <code>anime girl with purple hair</code>\n"
-               "• <code>cyberpunk city at night</code>\n"
-               "• <code>cute cat in a garden</code>"
+    "main": f"""🎨 <b>Welcome to AI Image Generator Bot!</b>
+
+I can generate stunning images using Pollinations AI. 
+Create anime art, realistic photos, fantasy scenes, and much more!
+
+<b>✨ Features:</b>
+• Multiple FLUX models available
+• High-quality image generation
+• Completely free and unlimited
+• Fast generation (10–30 seconds)
+
+<b>🚀 Quick Start:</b>
+Just type your prompt or use /generate command!""",
+
+    "group": f"""🌸 <b>Hello everyone!</b>
+
+I'm your AI Image Generator Bot! In groups, use:
+
+<code>mikasa [your prompt here]</code>
+
+<b>Example:</b> <code>mikasa cute anime girl with blue hair</code>
+
+I'll generate amazing images for your group! 🎨""",
+
+    "private": f"""🎨 <b>Welcome to your personal AI Art Studio!</b>
+
+Here you can generate unlimited images completely free!
+
+<b>Just type any description and I'll create it for you!</b>
+
+Examples:
+• <code>anime girl with purple hair</code>
+• <code>cyberpunk city at night</code>
+• <code>cute cat in a garden</code>"""
 }
 
 # Help messages
 HELP_MESSAGES = {
-    "basic": "🤖 <b>AI Image Generator Bot Help</b>\n\n"
-             "<b>Quick Start:</b>\n"
-             "• Private: Type any prompt\n"
-             "• Groups: <code>mikasa [prompt]</code>\n"
-             "• Commands: <code>/generate [prompt]</code>\n\n"
-             "<b>Example:</b>\n"
-             "<code>anime girl with blue hair</code>\n\n"
-             "🌸 <b>Powered by Pollinations AI</b>",
-    
-    "expanded": "🤖 <b>AI Image Generator Bot - Complete Guide</b>\n\n"
-                "<b>🎨 Basic Usage:</b>\n"
-                "• Type any prompt directly (private chat only)\n"
-                "• Use <code>/generate [prompt]</code> anywhere\n"
-                "• Click buttons for quick actions\n\n"
-                "<b>🌸 Group Usage:</b>\n"
-                "• Type <code>mikasa [your prompt]</code> in groups\n"
-                "• Example: <code>mikasa cute anime girl with blue hair</code>\n"
-                "• Bot will reply to your message with generated image\n\n"
-                "<b>💡 Advanced Prompt Tips:</b>\n"
-                "• Be descriptive: 'anime girl with blue hair and green eyes'\n"
-                "• Add art styles: 'realistic', 'cartoon', 'oil painting', 'watercolor'\n"
-                "• Specify details: colors, lighting, mood, background\n"
-                "• Use quality terms: 'detailed', 'high quality', '4k', 'masterpiece'\n"
-                "• Include camera settings: 'close-up', 'wide shot', 'portrait'\n\n"
-                "<b>🎯 Style Keywords:</b>\n"
-                "• <code>anime, manga, kawaii</code> - Japanese animation style\n"
-                "• <code>realistic, photorealistic</code> - Real photo look\n"
-                "• <code>cyberpunk, futuristic, sci-fi</code> - Technology themes\n"
-                "• <code>fantasy, magical, ethereal</code> - Fantasy elements\n"
-                "• <code>vintage, retro, classic</code> - Old-style aesthetics\n\n"
-                "<b>⚡ Available Commands:</b>\n"
-                "• <code>/start</code> - Main menu and bot info\n"
-                "• <code>/generate</code> - Full generation interface\n"
-                "• <code>/help</code> - This help guide\n\n"
-                "<b>🛠️ Features:</b>\n"
-                "• 4 AI models (FLUX, Turbo, Realism, Anime)\n"
-                "• Multiple image sizes (512x512 to 1024x1024)\n"
-                "• Style presets for easy enhancement\n"
-                "• Random prompt generator\n"
-                "• Completely free and unlimited\n\n"
-                "<b>🌟 Example Prompts:</b>\n"
-                "• <code>cyberpunk city at night, neon lights, rain</code>\n"
-                "• <code>cute cat sitting in a garden, watercolor style</code>\n"
-                "• <code>fantasy dragon flying over mountains, detailed</code>\n"
-                "• <code>beautiful anime girl, long purple hair, green eyes</code>\n"
-                "• <code>futuristic robot, metallic, glowing blue eyes</code>\n\n"
-                "<b>🔧 Powered by Pollinations AI</b>\n"
-                "Fast, reliable, and completely free image generation!"
+    "basic": f"""🤖 <b>AI Image Generator Bot Help</b>
+
+<b>Quick Start:</b>
+• Private: Type any prompt
+• Groups: <code>mikasa [prompt]</code>
+• Commands: <code>/generate [prompt]</code>
+
+<b>Example:</b>
+<code>anime girl with blue hair</code>
+
+🌸 <b>Powered by Pollinations AI</b>""",
+
+    "expanded": f"""🤖 <b>AI Image Generator Bot - Complete Guide</b>
+
+<b>🎨 Basic Usage:</b>
+• Type any prompt directly (private chat only)
+• Use <code>/generate [prompt]</code> anywhere
+• Click buttons for quick actions
+
+<b>🌸 Group Usage:</b>
+• Type <code>mikasa [your prompt]</code> in groups
+• Example: <code>mikasa cute anime girl with blue hair</code>
+• Bot will reply to your message with generated image
+
+<b>💡 Advanced Prompt Tips:</b>
+• Be descriptive: 'anime girl with blue hair and green eyes'
+• Add art styles: 'realistic', 'cartoon', 'oil painting', 'watercolor'
+• Specify details: colors, lighting, mood, background
+• Use quality terms: 'detailed', 'high quality', '4k', 'masterpiece'
+• Include camera settings: 'close-up', 'wide shot', 'portrait'
+
+<b>🎯 Style Keywords:</b>
+• <code>anime, manga, kawaii</code> - Japanese animation style
+• <code>realistic, photorealistic</code> - Real photo look
+• <code>cyberpunk, futuristic, sci-fi</code> - Technology themes
+• <code>fantasy, magical, ethereal</code> - Fantasy elements
+• <code>vintage, retro, classic</code> - Old-style aesthetics
+
+<b>⚡ Available Commands:</b>
+• <code>/start</code> - Main menu and bot info
+• <code>/generate</code> - Full generation interface
+• <code>/help</code> - This help guide
+
+<b>🛠️ Features:</b>
+• 4 AI models (FLUX, Turbo, Realism, Anime)
+• Multiple image sizes (512x512 to 1024x1024)
+• Style presets for easy enhancement
+• Random prompt generator
+• Completely free and unlimited
+
+<b>🌟 Example Prompts:</b>
+• <code>cyberpunk city at night, neon lights, rain</code>
+• <code>cute cat sitting in a garden, watercolor style</code>
+• <code>fantasy dragon flying over mountains, detailed</code>
+• <code>beautiful anime girl, long purple hair, green eyes</code>
+• <code>futuristic robot, metallic, glowing blue eyes</code>
+
+<b>🔧 Powered by Pollinations AI</b>
+Fast, reliable, and completely free image generation!"""
 }
 
 # Status messages
@@ -201,87 +222,139 @@ STATUS_MESSAGES = {
 
 # Error messages
 ERROR_MESSAGES = {
-    "generation_failed": "❌ <b>Generation failed</b>\n\n"
-                        "The image generation service is currently unavailable. This might be due to:\n"
-                        "• Service maintenance\n"
-                        "• Network issues\n"
-                        "• Server overload\n\n"
-                        "<b>Solutions:</b>\n"
-                        "• Try again in a few minutes\n"
-                        "• Try with a different prompt\n"
-                        "• Use /generate to try different settings",
-    
-    "no_prompt": "🌸 <b>Hey there!</b>\n\n"
-                "I see you called me with 'mikasa'! To generate an image, use:\n\n"
-                "<code>mikasa [your prompt here]</code>\n\n"
-                "<b>Example:</b>\n"
-                "<code>mikasa cute anime girl with blue hair</code>",
-    
-    "network_error": "🌐 <b>Network Error</b>\n\n"
-                    "Cannot connect to the image generation service right now.\n"
-                    "Please try again in a few moments.",
-    
-    "timeout_error": "⏰ <b>Request Timeout</b>\n\n"
-                    "The generation took too long. This usually happens when:\n"
-                    "• The service is overloaded\n"
-                    "• Complex prompts need more time\n\n"
-                    "Please try again or simplify your prompt."
+    "generation_failed": f"""❌ <b>Generation failed</b>
+
+The image generation service is currently unavailable. This might be due to:
+• Service maintenance
+• Network issues
+• Server overload
+
+<b>Solutions:</b>
+• Try again in a few minutes
+• Try with a different prompt
+• Use /generate to try different settings""",
+
+    "no_prompt": f"""🌸 <b>Hey there!</b>
+
+I see you called me with 'mikasa'! To generate an image, use:
+
+<code>mikasa [your prompt here]</code>
+
+<b>Example:</b>
+<code>mikasa cute anime girl with blue hair</code>""",
+
+    "network_error": f"""🌐 <b>Network Error</b>
+
+Cannot connect to the image generation service right now.
+Please try again in a few moments.""",
+
+    "timeout_error": f"""⏰ <b>Request Timeout</b>
+
+The generation took too long. This usually happens when:
+• The service is overloaded
+• Complex prompts need more time
+
+Please try again or simplify your prompt."""
 }
 
 # Success messages
 SUCCESS_MESSAGES = {
-    "image_generated": "🎨 <b>Generated Image</b>\n\n<b>Prompt:</b> {prompt}",
-    "image_for_user": "🎨 <b>Generated for</b> @{username}\n\n<b>Prompt:</b> {prompt}",
-    "model_selected": "✅ <b>Model Selected</b>\n\n<b>Service:</b> {service}\n<b>Model:</b> {model}\n<b>Description:</b> {description}\n\nYou can now generate images with this model!",
-    "size_updated": "✅ <b>Size updated to {width}x{height}</b>\n\nYou can now generate images with the new size!",
-    "style_applied": "🎨 <b>Style Applied: {style}</b>\n\n<b>Style modifier:</b> {modifier}\n\nThis will be added to your prompts automatically!",
-    "settings_reset": "🔄 <b>Settings Reset</b>\n\nAll settings restored to default values:\n• Service: Pollinations AI\n• Model: FLUX\n• Size: 512x512\n• Style: None\n\nReady to generate!"
+    "image_generated": f"""🎨 <b>Generated Image</b>
+
+<b>Prompt:</b> {{prompt}}""",
+
+    "image_for_user": f"""🎨 <b>Generated for</b> @{{username}}
+
+<b>Prompt:</b> {{prompt}}""",
+
+    "model_selected": f"""✅ <b>Model Selected</b>
+
+<b>Service:</b> {{service}}
+<b>Model:</b> {{model}}
+<b>Description:</b> {{description}}
+
+You can now generate images with this model!""",
+
+    "size_updated": f"""✅ <b>Size updated to {{width}}x{{height}}</b>
+
+You can now generate images with the new size!""",
+
+    "style_applied": f"""🎨 <b>Style Applied: {{style}}</b>
+
+<b>Style modifier:</b> {{modifier}}
+
+This will be added to your prompts automatically!""",
+
+    "settings_reset": f"""🔄 <b>Settings Reset</b>
+
+All settings restored to default values:
+• Service: Pollinations AI
+• Model: FLUX
+• Size: 512x512
+• Style: None
+
+Ready to generate!"""
 }
 
 # Menu messages
 MENU_MESSAGES = {
-    "generate_menu": "🎨 <b>AI Image Generator</b>\n\n"
-                    "Choose an option or provide a prompt:\n\n"
-                    "<b>Usage:</b> <code>/generate your prompt here</code>\n\n"
-                    "<b>Example:</b> <code>/generate anime girl with blue hair</code>",
-    
-    "model_selection": "🤖 <b>AI Model Selection</b>\n\n"
-                      "<b>Current Service:</b> {service}\n"
-                      "<b>Current Model:</b> {model}\n\n"
-                      "Choose your preferred AI model:",
-    
-    "settings_menu": "⚙️ <b>Settings Menu</b>\n\n"
-                    "<b>Service:</b> {service}\n"
-                    "<b>Model:</b> {model}\n"
-                    "<b>Size:</b> {width}x{height}\n\n"
-                    "Customize your generation settings:",
-    
-    "style_presets": "🌟 <b>Style Presets</b>\n\n"
-                    "<b>Current Style:</b> {style}\n\n"
-                    "Choose a style to automatically enhance your prompts:",
-    
-    "size_options": "📊 <b>Image Size Options</b>\n\n"
-                   "<b>Current Size:</b> {size}\n\n"
-                   "Choose your preferred image dimensions:",
-    
-    "help_menu": "❓ <b>Help & Guide</b>\n\n"
-                "<b>🎨 How to Generate:</b>\n"
-                "• Type any text description\n"
-                "• Use /generate [prompt]\n"
-                "• Click 'Generate Sample'\n\n"
-                "<b>💡 Prompt Tips:</b>\n"
-                "• Be descriptive: 'anime girl with blue hair'\n"
-                "• Add style: 'realistic', 'cartoon', 'oil painting'\n"
-                "• Specify details: colors, lighting, mood\n"
-                "• Use quality terms: 'detailed', 'high quality', '4k'\n\n"
-                "<b>⚡ Commands:</b>\n"
-                "• /generate - Create image\n"
-                "• /help - Show this guide\n"
-                "• /start - Return to main menu\n\n"
-                "<b>🌟 Example Prompts:</b>\n"
-                "• 'cyberpunk city at night, neon lights'\n"
-                "• 'cute cat in a garden, watercolor style'\n"
-                "• 'fantasy dragon, detailed digital art'"
+    "generate_menu": f"""🎨 <b>AI Image Generator</b>
+
+Choose an option or provide a prompt:
+
+<b>Usage:</b> <code>/generate your prompt here</code>
+
+<b>Example:</b> <code>/generate anime girl with blue hair</code>""",
+
+    "model_selection": f"""🤖 <b>AI Model Selection</b>
+
+<b>Current Service:</b> {{service}}
+<b>Current Model:</b> {{model}}
+
+Choose your preferred AI model:""",
+
+    "settings_menu": f"""⚙️ <b>Settings Menu</b>
+
+<b>Service:</b> {{service}}
+<b>Model:</b> {{model}}
+<b>Size:</b> {{width}}x{{height}}
+
+Customize your generation settings:""",
+
+    "style_presets": f"""🌟 <b>Style Presets</b>
+
+<b>Current Style:</b> {{style}}
+
+Choose a style to automatically enhance your prompts:""",
+
+    "size_options": f"""📊 <b>Image Size Options</b>
+
+<b>Current Size:</b> {{size}}
+
+Choose your preferred image dimensions:""",
+
+    "help_menu": f"""❓ <b>Help & Guide</b>
+
+<b>🎨 How to Generate:</b>
+• Type any text description
+• Use /generate [prompt]
+• Click 'Generate Sample'
+
+<b>💡 Prompt Tips:</b>
+• Be descriptive: 'anime girl with blue hair'
+• Add style: 'realistic', 'cartoon', 'oil painting'
+• Specify details: colors, lighting, mood
+• Use quality terms: 'detailed', 'high quality', '4k'
+
+<b>⚡ Commands:</b>
+• /generate - Create image
+• /help - Show this guide
+• /start - Return to main menu
+
+<b>🌟 Example Prompts:</b>
+• 'cyberpunk city at night, neon lights'
+• 'cute cat in a garden, watercolor style'
+• 'fantasy dragon, detailed digital art'"""
 }
 
 # Random prompts for sample generation
