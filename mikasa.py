@@ -119,14 +119,17 @@ def get_user_full_name(user):
     else:
         return user.username or "Unknown User"
 
-# Helper function to create clickable mention
-def get_user_mention(user):
-    """Create a clickable mention using user ID and full name."""
+# Helper function to create clickable user mention
+def get_clickable_user_mention(user):
+    """Create a clickable user mention with full name."""
     if not user:
         return "Unknown User"
     
     full_name = get_user_full_name(user)
-    return f'<a href="tg://user?id={user.id}">{full_name}</a>'
+    user_id = user.id
+    
+    # Create clickable mention using tg://user?id=USER_ID format
+    return f'<a href="tg://user?id={user_id}">{full_name}</a>'
 
 # Welcome messages with user mention placeholders
 WELCOME_MESSAGES = {
