@@ -21,6 +21,7 @@ from telegram.ext import (
     filters
 )
 from telegram.constants import ParseMode
+import html
 
 # Configure logging
 logging.basicConfig(
@@ -101,7 +102,7 @@ RANDOM_PHOTOS = [
     "https://i.postimg.cc/zGgdgJJc/New-Project-235-165-FE5-A.png"
 ]
 
-# Helper function to get user's full name
+# Helper function to get user's full name with proper HTML escaping
 def get_user_full_name(user):
     """Get user's full name, combining first and last name if available."""
     if not user:
@@ -111,13 +112,16 @@ def get_user_full_name(user):
     last_name = user.last_name or ""
     
     if first_name and last_name:
-        return f"{first_name} {last_name}"
+        full_name = f"{first_name} {last_name}"
     elif first_name:
-        return first_name
+        full_name = first_name
     elif last_name:
-        return last_name
+        full_name = last_name
     else:
-        return user.username or "Unknown User"
+        full_name = user.username or "Unknown User"
+    
+    # Escape HTML characters to prevent parsing issues
+    return html.escape(full_name)
 
 # Helper function to create clickable user mention
 def get_clickable_user_mention(user):
@@ -125,6 +129,7 @@ def get_clickable_user_mention(user):
     if not user:
         return "Unknown User"
     
+    # Get the escaped full name
     full_name = get_user_full_name(user)
     user_id = user.id
     
@@ -252,7 +257,7 @@ SUCCESS_MESSAGES = {
 
 <b>Prompt:</b> {prompt}""",
 
-    "image_for_user": """🌺 <b>Generated for {user_full_name}</b>
+    "image_for_user": """🌺 <b>Generated for {user_name}</b>
 
 <b>Prompt:</b> {prompt}""",
 
@@ -465,17 +470,17 @@ DEFAULT_PARAMS = {
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /start command with random photo."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     # Select random photo
     random_photo = random.choice(RANDOM_PHOTOS)
     
     # Determine message based on chat type
     if update.effective_chat.type == 'private':
-        welcome_message = WELCOME_MESSAGES["private"].format(user_name=user_full_name)
+        welcome_message = WELCOME_MESSAGES["private"].format(user_name=user_mention)
     else:
-        welcome_message = WELCOME_MESSAGES["group"].format(user_name=user_full_name)
+        welcome_message = WELCOME_MESSAGES["group"].format(user_name=user_mention)
     
     # Keyboard with dynamic links
     keyboard = [
@@ -499,8 +504,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /help command."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     keyboard = [
         [
@@ -510,15 +515,15 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
-        HELP_MESSAGES["basic"].format(user_name=user_full_name), 
+        HELP_MESSAGES["basic"].format(user_name=user_mention), 
         parse_mode=ParseMode.HTML, 
         reply_markup=reply_markup
     )
 
 async def generate_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /generate command with all functionality."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     if not context.args:
         # Show generate menu with options
@@ -543,7 +548,7 @@ async def generate_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            MENU_MESSAGES["generate_menu"].format(user_name=user_full_name),
+            MENU_MESSAGES["generate_menu"].format(user_name=user_mention),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -571,8 +576,8 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TYPE, message_text: str) -> None:
     """Handle mikasa keyword in groups."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     # Extract prompt after 'mikasa'
     parts = message_text.split(None, 1)  # Split on whitespace, max 1 split
@@ -587,7 +592,7 @@ async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            ERROR_MESSAGES["no_prompt"].format(user_name=user_full_name),
+            ERROR_MESSAGES["no_prompt"].format(user_name=user_mention),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -598,8 +603,8 @@ async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt: str) -> None:
     """Generate image and reply to the original message."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_model = context.user_data.get('model', 'flux')
@@ -628,9 +633,12 @@ async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAUL
             if context.user_data.get('style_suffix'):
                 clean_prompt = prompt.replace(', ' + context.user_data.get('style_suffix'), '')
             
+            # Escape the prompt for HTML
+            escaped_prompt = html.escape(clean_prompt)
+            
             caption = SUCCESS_MESSAGES["image_for_user"].format(
-                user_full_name=user_full_name,
-                prompt=clean_prompt
+                user_name=user_mention,
+                prompt=escaped_prompt
             )
             
             await context.bot.edit_message_media(
@@ -646,7 +654,7 @@ async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAUL
         else:
             # Generation failed - edit the emoji message with error
             await status_message.edit_text(
-                ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name), 
+                ERROR_MESSAGES["generation_failed"].format(user_name=user_mention), 
                 parse_mode=ParseMode.HTML
             )
             
@@ -654,13 +662,13 @@ async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAUL
         logger.error(f"Error generating image: {str(e)}")
         try:
             await status_message.edit_text(
-                ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name),
+                ERROR_MESSAGES["generation_failed"].format(user_name=user_mention),
                 parse_mode=ParseMode.HTML
             )
         except Exception:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name),
+                text=ERROR_MESSAGES["generation_failed"].format(user_name=user_mention),
                 parse_mode=ParseMode.HTML
             )
 
@@ -698,8 +706,8 @@ async def generate_image_pollinations(prompt: str, settings: dict) -> Optional[b
 
 async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt: str) -> None:
     """Generate an image based on the given prompt."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_model = context.user_data.get('model', 'flux')
@@ -742,9 +750,12 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
             if context.user_data.get('style_suffix'):
                 clean_prompt = prompt.replace(', ' + context.user_data.get('style_suffix'), '')
             
+            # Escape the prompt for HTML
+            escaped_prompt = html.escape(clean_prompt)
+            
             caption = SUCCESS_MESSAGES["image_generated"].format(
-                user_name=user_full_name, 
-                prompt=clean_prompt
+                user_name=user_mention, 
+                prompt=escaped_prompt
             )
             
             await context.bot.edit_message_media(
@@ -760,7 +771,7 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
         else:
             # Generation failed - edit the status message with error
             await status_message.edit_text(
-                ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name), 
+                ERROR_MESSAGES["generation_failed"].format(user_name=user_mention), 
                 parse_mode=ParseMode.HTML
             )
             
@@ -768,7 +779,7 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
         logger.error(f"Error generating image: {str(e)}")
         try:
             await status_message.edit_text(
-                ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name),
+                ERROR_MESSAGES["generation_failed"].format(user_name=user_mention),
                 parse_mode=ParseMode.HTML
             )
         except Exception:
@@ -779,8 +790,8 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     query = update.callback_query
     await query.answer()
     
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     data = query.data
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
@@ -818,7 +829,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         model_name = model_info.get("name", model.upper())
         
         success_text = SUCCESS_MESSAGES["model_selected"].format(
-            user_name=user_full_name,
+            user_name=user_mention,
             service=API_SERVICE['name'],
             model=model_name,
             description=model_info.get('description', 'No description available')
@@ -850,7 +861,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         context.user_data['settings'] = user_settings
         
         success_text = SUCCESS_MESSAGES["size_updated"].format(
-            user_name=user_full_name,
+            user_name=user_mention,
             width=width,
             height=height
         )
@@ -874,7 +885,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             context.user_data['style_suffix'] = STYLE_PRESETS[style]
             
             success_text = SUCCESS_MESSAGES["style_applied"].format(
-                user_name=user_full_name,
+                user_name=user_mention,
                 style=style.replace('_', ' ').title(),
                 modifier=STYLE_PRESETS[style]
             )
@@ -897,7 +908,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         context.user_data.pop('style_suffix', None)
         
         await query.edit_message_text(
-            SUCCESS_MESSAGES["settings_reset"].format(user_name=user_full_name),
+            SUCCESS_MESSAGES["settings_reset"].format(user_name=user_mention),
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup([
                 [
@@ -931,7 +942,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
-            MENU_MESSAGES["generate_menu"].format(user_name=user_full_name),
+            MENU_MESSAGES["generate_menu"].format(user_name=user_mention),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -945,7 +956,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
-            HELP_MESSAGES["expanded"].format(user_name=user_full_name),
+            HELP_MESSAGES["expanded"].format(user_name=user_mention),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -959,7 +970,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
-            HELP_MESSAGES["basic"].format(user_name=user_full_name),
+            HELP_MESSAGES["basic"].format(user_name=user_mention),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -972,13 +983,13 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def model_selection_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show AI model selection menu."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     current_model = context.user_data.get('model', 'flux')
     
     model_text = MENU_MESSAGES["model_selection"].format(
-        user_name=user_full_name,
+        user_name=user_mention,
         service=API_SERVICE['name'],
         model=current_model.upper()
     )
@@ -1012,14 +1023,14 @@ async def model_selection_menu(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def settings_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle settings menu callback."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_model = context.user_data.get('model', 'flux')
     
     settings_text = MENU_MESSAGES["settings_menu"].format(
-        user_name=user_full_name,
+        user_name=user_mention,
         service=API_SERVICE['name'],
         model=current_model.upper(),
         width=user_settings['width'],
@@ -1051,8 +1062,8 @@ async def settings_menu_callback(update: Update, context: ContextTypes.DEFAULT_T
 
 async def help_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle help menu callback."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     keyboard = [
         [
@@ -1064,20 +1075,20 @@ async def help_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.callback_query.edit_message_text(
-        MENU_MESSAGES["help_menu"].format(user_name=user_full_name),
+        MENU_MESSAGES["help_menu"].format(user_name=user_mention),
         parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
 
 async def style_presets_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show style presets menu."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     current_style = context.user_data.get('style_suffix', 'None')
     
     style_text = MENU_MESSAGES["style_presets"].format(
-        user_name=user_full_name,
+        user_name=user_mention,
         style=current_style
     )
     
@@ -1117,14 +1128,14 @@ async def style_presets_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def size_options_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show size options menu."""
-    # Get user's full name
-    user_full_name = get_user_full_name(update.effective_user)
+    # Get user's clickable mention
+    user_mention = get_clickable_user_mention(update.effective_user)
     
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_size = f"{user_settings['width']}x{user_settings['height']}"
     
     size_text = MENU_MESSAGES["size_options"].format(
-        user_name=user_full_name,
+        user_name=user_mention,
         size=current_size
     )
     
