@@ -101,10 +101,27 @@ RANDOM_PHOTOS = [
     "https://i.postimg.cc/zGgdgJJc/New-Project-235-165-FE5-A.png"
 ]
 
-# Welcome messages - Modified to use first name
-def get_welcome_messages(first_name: str):
-    return {
-        "main": f"""🌺 <b>Welcome {first_name}!</b>
+# Helper function to get user's full name
+def get_user_full_name(user):
+    """Get user's full name, combining first and last name if available."""
+    if not user:
+        return "Unknown User"
+    
+    first_name = user.first_name or ""
+    last_name = user.last_name or ""
+    
+    if first_name and last_name:
+        return f"{first_name} {last_name}"
+    elif first_name:
+        return first_name
+    elif last_name:
+        return last_name
+    else:
+        return user.username or "Unknown User"
+
+# Welcome messages with user mention placeholders
+WELCOME_MESSAGES = {
+    "main": """🌺 <b>Welcome {user_name}!</b>
 
 🥀 I'm your lovely artist, ready to create wonders for you.
 
@@ -112,7 +129,7 @@ def get_welcome_messages(first_name: str):
 
 💘 Let's make something magical!""",
 
-        "group": f"""🌺 <b>Hello {first_name} and everyone!</b>
+    "group": """🌺 <b>Hello {user_name}!</b>
 
 🥀 I'm your lovely artist, here for all of you!
 
@@ -120,19 +137,18 @@ def get_welcome_messages(first_name: str):
 
 💘 Just tell me what you want!""",
 
-        "private": f"""🌺 <b>Hey there {first_name}, welcome!</b>
+    "private": """🌺 <b>Hey there {user_name}, welcome!</b>
 
 🥀 I'm your lovely artist, here just for you!
 
 <blockquote>Tell me your fantasy, and I'll bring it to life softly, beautifully 🌹</blockquote>
 
 💘 Take your time i'm listening!"""
-    }
+}
 
-# Help messages - Modified to use first name
-def get_help_messages(first_name: str):
-    return {
-        "basic": f"""🌺 <b>Guide for you {first_name}!</b>
+# Help messages with user mention placeholders
+HELP_MESSAGES = {
+    "basic": """🌺 <b>Guide for you {user_name}!</b>
 
 🥀 Here's how to get started:
 
@@ -144,7 +160,7 @@ def get_help_messages(first_name: str):
 
 💘 I'm here to listen whenever you're ready.""",
 
-        "expanded": f"""🌺 <b>AI Image Generator Bot - Complete Guide for {first_name}</b>
+    "expanded": """🌺 <b>AI Image Generator Bot - Complete Guide for {user_name}</b>
 
 <b>🥀 Basic Usage:</b>
 • Type any prompt directly (private chat only)
@@ -167,7 +183,7 @@ def get_help_messages(first_name: str):
 • Style presets for easy enhancement
 • Random prompt generator
 • Completely free and unlimited"""
-    }
+}
 
 # Status messages
 STATUS_MESSAGES = {
@@ -187,10 +203,9 @@ STATUS_MESSAGES = {
     ]
 }
 
-# Error messages - Modified to use first name
-def get_error_messages(first_name: str):
-    return {
-        "generation_failed": f"""🌺 <b>Oh no {first_name}! something went wrong!</b>
+# Error messages with user mention placeholders
+ERROR_MESSAGES = {
+    "generation_failed": """🌺 <b>Oh no {user_name}! something went wrong!</b>
 
 <blockquote>I'm having a little trouble making your request right now. 😔</blockquote>
 
@@ -198,7 +213,7 @@ def get_error_messages(first_name: str):
 
 💘 Please try again in a little while, or maybe with a different idea.""",
 
-        "no_prompt": f"""🌺 <b>Hey there {first_name}!</b>
+    "no_prompt": """🌺 <b>Hey there {user_name}!</b>
 
 🥀 I see you called me with my name but didn't tell me what you want.
 
@@ -206,48 +221,48 @@ def get_error_messages(first_name: str):
 
 💘 I'm here just waiting for your lovely idea.""",
 
-        "network_error": f"""🌺 <b>Hmm {first_name}, something's in the way.</b>
+    "network_error": """🌺 <b>Hmm {user_name}, something's in the way.</b>
 
 <blockquote>💔 The connection feels a little quiet right now.</blockquote>
 
 🥀 Maybe give it a moment!""",
 
-        "timeout_error": f"""🌺 <b>{first_name}, that took a little too long!</b>
+    "timeout_error": """🌺 <b>That took a little too long {user_name}!</b>
 
 <blockquote>Sometimes dreams take time to bloom, but this one wandered off 🥀.</blockquote>
 
 💘 Maybe try a simpler idea!"""
-    }
+}
 
 # Success messages
 SUCCESS_MESSAGES = {
-    "image_generated": f"""🌺 <b>Generated Image</b>
+    "image_generated": """🌺 <b>Generated Image for {user_name}</b>
 
-<b>Prompt:</b> {{prompt}}""",
+<b>Prompt:</b> {prompt}""",
 
-    "image_for_user": f"""🌺 <b>Generated for</b> {{first_name}}
+    "image_for_user": """🌺 <b>Generated for {user_full_name}</b>
 
-<b>Prompt:</b> {{prompt}}""",
+<b>Prompt:</b> {prompt}""",
 
-    "model_selected": f"""✅ <b>Model Selected</b>
+    "model_selected": """✅ <b>Model Selected for {user_name}</b>
 
-<b>Service:</b> {{service}}
-<b>Model:</b> {{model}}
-<b>Description:</b> {{description}}
+<b>Service:</b> {service}
+<b>Model:</b> {model}
+<b>Description:</b> {description}
 
 You can now generate images with this model!""",
 
-    "size_updated": f"""✅ <b>Size updated to {{width}}x{{height}}</b>
+    "size_updated": """✅ <b>Size updated to {width}x{height} for {user_name}</b>
 
 You can now generate images with the new size!""",
 
-    "style_applied": f"""🎨 <b>Style Applied: {{style}}</b>
+    "style_applied": """🎨 <b>Style Applied for {user_name}: {style}</b>
 
-<b>Style modifier:</b> {{modifier}}
+<b>Style modifier:</b> {modifier}
 
 This will be added to your prompts automatically!""",
 
-    "settings_reset": f"""🔄 <b>Settings Reset</b>
+    "settings_reset": """🔄 <b>Settings Reset for {user_name}</b>
 
 All settings restored to default values:
 • Service: Pollinations AI
@@ -258,10 +273,9 @@ All settings restored to default values:
 Ready to generate!"""
 }
 
-# Menu messages - Modified to use first name
-def get_menu_messages(first_name: str):
-    return {
-        "generate_menu": f"""🌺 <b>Welcome to my little studio {first_name}!</b>
+# Menu messages with user mention placeholders
+MENU_MESSAGES = {
+    "generate_menu": """🌺 <b>Welcome to my little studio {user_name}!</b>
 
 🥀 You can tell me anything you imagine.
 
@@ -269,34 +283,34 @@ def get_menu_messages(first_name: str):
 
 💘 I'll be right here, ready to bring it to life.""",
 
-        "model_selection": f"""🤖 <b>AI Model Selection</b>
+    "model_selection": """🤖 <b>AI Model Selection for {user_name}</b>
 
-<b>Current Service:</b> {{service}}
-<b>Current Model:</b> {{model}}
+<b>Current Service:</b> {service}
+<b>Current Model:</b> {model}
 
 Choose your preferred AI model:""",
 
-        "settings_menu": f"""⚙️ <b>Settings Menu</b>
+    "settings_menu": """⚙️ <b>Settings Menu for {user_name}</b>
 
-<b>Service:</b> {{service}}
-<b>Model:</b> {{model}}
-<b>Size:</b> {{width}}x{{height}}
+<b>Service:</b> {service}
+<b>Model:</b> {model}
+<b>Size:</b> {width}x{height}
 
 Customize your generation settings:""",
 
-        "style_presets": f"""🌟 <b>Style Presets</b>
+    "style_presets": """🌟 <b>Style Presets for {user_name}</b>
 
-<b>Current Style:</b> {{style}}
+<b>Current Style:</b> {style}
 
 Choose a style to automatically enhance your prompts:""",
 
-        "size_options": f"""📊 <b>Image Size Options</b>
+    "size_options": """📊 <b>Image Size Options for {user_name}</b>
 
-<b>Current Size:</b> {{size}}
+<b>Current Size:</b> {size}
 
 Choose your preferred image dimensions:""",
 
-        "help_menu": f"""❓ <b>Help & Guide for {first_name}</b>
+    "help_menu": """❓ <b>Help & Guide for {user_name}</b>
 
 <b>🎨 How to Generate:</b>
 • Type any text description
@@ -318,7 +332,7 @@ Choose your preferred image dimensions:""",
 • 'cyberpunk city at night, neon lights'
 • 'cute cat in a garden, watercolor style'
 • 'fantasy dragon, detailed digital art'"""
-    }
+}
 
 # Random prompts for sample generation
 RANDOM_PROMPTS = [
@@ -439,20 +453,17 @@ DEFAULT_PARAMS = {
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /start command with random photo."""
-    # Get user's first name
-    first_name = update.effective_user.first_name or "Friend"
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
     
     # Select random photo
     random_photo = random.choice(RANDOM_PHOTOS)
     
-    # Get welcome messages with first name
-    welcome_messages = get_welcome_messages(first_name)
-    
     # Determine message based on chat type
     if update.effective_chat.type == 'private':
-        welcome_message = welcome_messages["private"]
+        welcome_message = WELCOME_MESSAGES["private"].format(user_name=user_full_name)
     else:
-        welcome_message = welcome_messages["group"]
+        welcome_message = WELCOME_MESSAGES["group"].format(user_name=user_full_name)
     
     # Keyboard with dynamic links
     keyboard = [
@@ -476,9 +487,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /help command."""
-    # Get user's first name
-    first_name = update.effective_user.first_name or "Friend"
-    help_messages = get_help_messages(first_name)
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
     
     keyboard = [
         [
@@ -488,16 +498,15 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
-        help_messages["basic"], 
+        HELP_MESSAGES["basic"].format(user_name=user_full_name), 
         parse_mode=ParseMode.HTML, 
         reply_markup=reply_markup
     )
 
 async def generate_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /generate command with all functionality."""
-    # Get user's first name
-    first_name = update.effective_user.first_name or "Friend"
-    menu_messages = get_menu_messages(first_name)
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
     
     if not context.args:
         # Show generate menu with options
@@ -522,7 +531,7 @@ async def generate_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            menu_messages["generate_menu"],
+            MENU_MESSAGES["generate_menu"].format(user_name=user_full_name),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -550,9 +559,8 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TYPE, message_text: str) -> None:
     """Handle mikasa keyword in groups."""
-    # Get user's first name
-    first_name = update.effective_user.first_name or "Friend"
-    error_messages = get_error_messages(first_name)
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
     
     # Extract prompt after 'mikasa'
     parts = message_text.split(None, 1)  # Split on whitespace, max 1 split
@@ -567,7 +575,7 @@ async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            error_messages["no_prompt"],
+            ERROR_MESSAGES["no_prompt"].format(user_name=user_full_name),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -578,6 +586,9 @@ async def handle_mikasa_keyword(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt: str) -> None:
     """Generate image and reply to the original message."""
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
+    
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_model = context.user_data.get('model', 'flux')
     
@@ -605,10 +616,8 @@ async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAUL
             if context.user_data.get('style_suffix'):
                 clean_prompt = prompt.replace(', ' + context.user_data.get('style_suffix'), '')
             
-            # Use first name instead of username
-            first_name = update.effective_user.first_name or "Friend"
             caption = SUCCESS_MESSAGES["image_for_user"].format(
-                first_name=first_name,
+                user_full_name=user_full_name,
                 prompt=clean_prompt
             )
             
@@ -624,26 +633,22 @@ async def generate_image_with_reply(update: Update, context: ContextTypes.DEFAUL
             
         else:
             # Generation failed - edit the emoji message with error
-            first_name = update.effective_user.first_name or "Friend"
-            error_messages = get_error_messages(first_name)
             await status_message.edit_text(
-                error_messages["generation_failed"], 
+                ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name), 
                 parse_mode=ParseMode.HTML
             )
             
     except Exception as e:
         logger.error(f"Error generating image: {str(e)}")
         try:
-            first_name = update.effective_user.first_name or "Friend"
-            error_messages = get_error_messages(first_name)
             await status_message.edit_text(
-                error_messages["generation_failed"],
+                ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name),
                 parse_mode=ParseMode.HTML
             )
         except Exception:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=get_error_messages(update.effective_user.first_name or "Friend")["generation_failed"],
+                text=ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name),
                 parse_mode=ParseMode.HTML
             )
 
@@ -681,6 +686,9 @@ async def generate_image_pollinations(prompt: str, settings: dict) -> Optional[b
 
 async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt: str) -> None:
     """Generate an image based on the given prompt."""
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
+    
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_model = context.user_data.get('model', 'flux')
     
@@ -722,7 +730,10 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
             if context.user_data.get('style_suffix'):
                 clean_prompt = prompt.replace(', ' + context.user_data.get('style_suffix'), '')
             
-            caption = SUCCESS_MESSAGES["image_generated"].format(prompt=clean_prompt)
+            caption = SUCCESS_MESSAGES["image_generated"].format(
+                user_name=user_full_name, 
+                prompt=clean_prompt
+            )
             
             await context.bot.edit_message_media(
                 chat_id=update.effective_chat.id,
@@ -736,20 +747,16 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE, pro
             
         else:
             # Generation failed - edit the status message with error
-            first_name = update.effective_user.first_name or "Friend"
-            error_messages = get_error_messages(first_name)
             await status_message.edit_text(
-                error_messages["generation_failed"], 
+                ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name), 
                 parse_mode=ParseMode.HTML
             )
             
     except Exception as e:
         logger.error(f"Error generating image: {str(e)}")
         try:
-            first_name = update.effective_user.first_name or "Friend"
-            error_messages = get_error_messages(first_name)
             await status_message.edit_text(
-                error_messages["generation_failed"],
+                ERROR_MESSAGES["generation_failed"].format(user_name=user_full_name),
                 parse_mode=ParseMode.HTML
             )
         except Exception:
@@ -760,9 +767,11 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     query = update.callback_query
     await query.answer()
     
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
+    
     data = query.data
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
-    first_name = update.effective_user.first_name or "Friend"
     
     if data == "sample":
         sample_prompt = random.choice(RANDOM_PROMPTS)
@@ -797,6 +806,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         model_name = model_info.get("name", model.upper())
         
         success_text = SUCCESS_MESSAGES["model_selected"].format(
+            user_name=user_full_name,
             service=API_SERVICE['name'],
             model=model_name,
             description=model_info.get('description', 'No description available')
@@ -828,6 +838,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         context.user_data['settings'] = user_settings
         
         success_text = SUCCESS_MESSAGES["size_updated"].format(
+            user_name=user_full_name,
             width=width,
             height=height
         )
@@ -851,6 +862,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             context.user_data['style_suffix'] = STYLE_PRESETS[style]
             
             success_text = SUCCESS_MESSAGES["style_applied"].format(
+                user_name=user_full_name,
                 style=style.replace('_', ' ').title(),
                 modifier=STYLE_PRESETS[style]
             )
@@ -873,7 +885,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         context.user_data.pop('style_suffix', None)
         
         await query.edit_message_text(
-            SUCCESS_MESSAGES["settings_reset"],
+            SUCCESS_MESSAGES["settings_reset"].format(user_name=user_full_name),
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup([
                 [
@@ -886,7 +898,6 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     
     elif data == "back_to_generate":
         # Return to generate menu
-        menu_messages = get_menu_messages(first_name)
         keyboard = [
             [
                 InlineKeyboardButton("🤖 Select Model", callback_data="select_model"),
@@ -908,13 +919,12 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
-            menu_messages["generate_menu"],
+            MENU_MESSAGES["generate_menu"].format(user_name=user_full_name),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
     
     elif data == "expand_guide":
-        help_messages = get_help_messages(first_name)
         keyboard = [
             [
                 InlineKeyboardButton("📚 Minimize Guide", callback_data="minimize_guide")
@@ -923,13 +933,12 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
-            help_messages["expanded"],
+            HELP_MESSAGES["expanded"].format(user_name=user_full_name),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
     
     elif data == "minimize_guide":
-        help_messages = get_help_messages(first_name)
         keyboard = [
             [
                 InlineKeyboardButton("📖 Expand Guide", callback_data="expand_guide")
@@ -938,7 +947,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
-            help_messages["basic"],
+            HELP_MESSAGES["basic"].format(user_name=user_full_name),
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )
@@ -951,11 +960,13 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def model_selection_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show AI model selection menu."""
-    current_model = context.user_data.get('model', 'flux')
-    first_name = update.effective_user.first_name or "Friend"
-    menu_messages = get_menu_messages(first_name)
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
     
-    model_text = menu_messages["model_selection"].format(
+    current_model = context.user_data.get('model', 'flux')
+    
+    model_text = MENU_MESSAGES["model_selection"].format(
+        user_name=user_full_name,
         service=API_SERVICE['name'],
         model=current_model.upper()
     )
@@ -989,12 +1000,14 @@ async def model_selection_menu(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def settings_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle settings menu callback."""
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
+    
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_model = context.user_data.get('model', 'flux')
-    first_name = update.effective_user.first_name or "Friend"
-    menu_messages = get_menu_messages(first_name)
     
-    settings_text = menu_messages["settings_menu"].format(
+    settings_text = MENU_MESSAGES["settings_menu"].format(
+        user_name=user_full_name,
         service=API_SERVICE['name'],
         model=current_model.upper(),
         width=user_settings['width'],
@@ -1026,8 +1039,8 @@ async def settings_menu_callback(update: Update, context: ContextTypes.DEFAULT_T
 
 async def help_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle help menu callback."""
-    first_name = update.effective_user.first_name or "Friend"
-    menu_messages = get_menu_messages(first_name)
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
     
     keyboard = [
         [
@@ -1039,18 +1052,22 @@ async def help_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.callback_query.edit_message_text(
-        menu_messages["help_menu"],
+        MENU_MESSAGES["help_menu"].format(user_name=user_full_name),
         parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
 
 async def style_presets_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show style presets menu."""
-    current_style = context.user_data.get('style_suffix', 'None')
-    first_name = update.effective_user.first_name or "Friend"
-    menu_messages = get_menu_messages(first_name)
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
     
-    style_text = menu_messages["style_presets"].format(style=current_style)
+    current_style = context.user_data.get('style_suffix', 'None')
+    
+    style_text = MENU_MESSAGES["style_presets"].format(
+        user_name=user_full_name,
+        style=current_style
+    )
     
     keyboard = [
         [
@@ -1088,12 +1105,16 @@ async def style_presets_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def size_options_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show size options menu."""
+    # Get user's full name
+    user_full_name = get_user_full_name(update.effective_user)
+    
     user_settings = context.user_data.get('settings', DEFAULT_PARAMS.copy())
     current_size = f"{user_settings['width']}x{user_settings['height']}"
-    first_name = update.effective_user.first_name or "Friend"
-    menu_messages = get_menu_messages(first_name)
     
-    size_text = menu_messages["size_options"].format(size=current_size)
+    size_text = MENU_MESSAGES["size_options"].format(
+        user_name=user_full_name,
+        size=current_size
+    )
     
     keyboard = [
         [
