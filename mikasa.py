@@ -1,3 +1,4 @@
+# Ok
 import os
 import logging
 import asyncio
@@ -255,11 +256,11 @@ ERROR_MESSAGES = {
 SUCCESS_MESSAGES = {
     "image_generated": """🌺 <b>Generated Image for {user_name}</b>
 
-<b>Prompt:</b> {prompt}""",
+<blockquote>{prompt}</blockquote>""",
 
     "image_for_user": """🌺 <b>Generated for {user_name}</b>
 
-<b>Prompt:</b> {prompt}""",
+<blockquote>{prompt}</blockquote>""",
 
     "model_selected": """✅ <b>Model Selected for {user_name}</b>
 
@@ -462,8 +463,8 @@ API_SERVICE = {
 
 # Default generation parameters
 DEFAULT_PARAMS = {
-    "width": 512,
-    "height": 512,
+    "width": 1024,
+    "height": 1024,
     "seed": None,
     "model": "flux"
 }
