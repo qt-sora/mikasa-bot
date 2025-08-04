@@ -1165,6 +1165,33 @@ async def size_options_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         reply_markup=reply_markup
     )
 
+async def ping_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle the /ping command with animation."""
+    import time
+    
+    start_time = time.time()
+    
+    # In groups, reply to the message. In private, send normally
+    if update.effective_chat.type != 'private':
+        # Group chat - reply to message
+        ping_message = await update.message.reply_text("🛰️ Pinging...")
+    else:
+        # Private chat - send normally
+        ping_message = await update.message.reply_text("🛰️ Pinging...")
+    
+    # Calculate ping time
+    end_time = time.time()
+    ping_time = round((end_time - start_time) * 1000, 2)  # Convert to milliseconds
+    
+    # Edit message with pong result and hyperlink
+    pong_text = f'🏓 <a href="https://t.me/SoulMeetsHQ">Pong!</a> {ping_time}ms'
+    
+    await ping_message.edit_text(
+        pong_text,
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True
+    )
+
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle errors."""
     logger.error(f"Exception while handling an update: {context.error}")
