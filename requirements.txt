@@ -1,4 +1,4 @@
-# Telegram Bot Framework (Python 3.13 compatible)
+# Telegram Bot Framework (Python 3.13 compatible) 
 python-telegram-bot[job-queue]==21.5
 
 # HTTP Requests
